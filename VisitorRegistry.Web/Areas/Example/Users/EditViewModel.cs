@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using Template.Services.Shared;
+using VisitorRegistry.Services.Shared;
 using VisitorRegistry.Web.Infrastructure;
 
 namespace VisitorRegistry.Web.Areas.Example.Users

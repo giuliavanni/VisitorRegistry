@@ -11949,7 +11949,7 @@
             /* istanbul ignore if */
             if (!template) {
               warn(
-                ("Template element not found or is empty: " + (options.template)),
+                ("VisitorRegistry element not found or is empty: " + (options.template)),
                 this
               );
             }

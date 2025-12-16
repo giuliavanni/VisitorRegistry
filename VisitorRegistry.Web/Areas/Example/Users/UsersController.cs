@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Threading.Tasks;
-using Template.Services.Shared;
+using VisitorRegistry.Services.Shared;
 using VisitorRegistry.Web.Infrastructure;
 using VisitorRegistry.Web.SignalR;
 using VisitorRegistry.Web.SignalR.Hubs.Events;

@@ -9,6 +9,8 @@ namespace VisitorRegistry.Infrastructure
     {
         public static void InitializeUsers(TemplateDbContext context)
         {
+            context.Database.EnsureCreated();
+
             if (context.Users.Any())
             {
                 return;   // Data was already seeded

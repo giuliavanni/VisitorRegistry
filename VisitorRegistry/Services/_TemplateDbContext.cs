@@ -16,5 +16,7 @@ namespace VisitorRegistry.Services
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Visitor> Visitors { get; set; }
+        public DbSet<Presence> Presences { get; set; }
     }
 }

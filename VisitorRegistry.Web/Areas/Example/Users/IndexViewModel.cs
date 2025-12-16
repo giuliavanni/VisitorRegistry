@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Template.Services.Shared;
+using VisitorRegistry.Services.Shared;
 using VisitorRegistry.Web.Infrastructure;
 
 namespace VisitorRegistry.Web.Areas.Example.Users
@@ -34,7 +34,7 @@ namespace VisitorRegistry.Web.Areas.Example.Users
             return new UsersIndexQuery
             {
                 Filter = Filter,
-                Paging = new Template.Infrastructure.Paging
+                Paging = new VisitorRegistry.Infrastructure.Paging
                 {
                     OrderBy = OrderBy,
                     OrderByDescending = OrderByDescending,

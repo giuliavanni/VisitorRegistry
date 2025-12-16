@@ -10,7 +10,8 @@ using Microsoft.Extensions.Hosting;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Template.Services;
+using VisitorRegistry.Services;
+using VisitorRegistry.Infrastructure;
 using VisitorRegistry.Web.Infrastructure;
 using VisitorRegistry.Web.SignalR.Hubs;
 
@@ -34,7 +35,7 @@ namespace VisitorRegistry.Web
 
             services.AddDbContext<TemplateDbContext>(options =>
             {
-                options.UseInMemoryDatabase(databaseName: "Template");
+                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
 
             // SERVICES FOR AUTHENTICATION

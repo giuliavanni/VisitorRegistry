@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Template.Infrastructure;
-using Template.Services.Shared;
+using VisitorRegistry.Infrastructure;
+using VisitorRegistry.Services.Shared;
 using VisitorRegistry.Web.Infrastructure;
 
 namespace VisitorRegistry.Web.Features.Login

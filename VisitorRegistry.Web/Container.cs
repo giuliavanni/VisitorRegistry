@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Template.Services.Shared;
+using VisitorRegistry.Services.Shared;
 using VisitorRegistry.Web.SignalR;
 
 namespace VisitorRegistry.Web
