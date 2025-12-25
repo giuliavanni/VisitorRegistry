@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using VisitorRegistry.Infrastructure;
 using VisitorRegistry.Services.Shared;
 using UserModel = VisitorRegistry.Services.Shared.User;
@@ -36,10 +38,15 @@ namespace VisitorRegistry.Services
             var userId = Guid.NewGuid();
             var dateVisita = new DateTime(2025, 12, 24);
             var datePresence = new DateTime(2025, 12, 24, 10, 0, 0);
+            
+            var sha256 = SHA256.Create();
+            var hashed = Convert.ToBase64String(
+                sha256.ComputeHash(Encoding.ASCII.GetBytes("password"))
+            );
 
             // Esempio di seeding dati iniziali
             modelBuilder.Entity<UserModel>().HasData(
-                new UserModel { Id = userId, Email = "admin@example.com", Password = "password", FirstName = "Costanzo", LastName = "Buonarroti", NickName = "Admin" }
+                new UserModel { Id = userId, Email = "admin@example.com", Password = hashed, FirstName = "Costanzo", LastName = "Buonarroti", NickName = "Admin" }
             );
 
             modelBuilder.Entity<Visitor>().HasData(
