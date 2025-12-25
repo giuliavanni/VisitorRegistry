@@ -15,7 +15,7 @@ namespace VisitorRegistry.Services.Shared
 
         public string Cognome { get; set; } = string.Empty;
 
-        public DateTime DataVisita { get; set; }
+        public DateTime DataVisita { get; set; }  
 
         public string QrCode { get; set; } = string.Empty;
 
