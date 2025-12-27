@@ -7,13 +7,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileProviders;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using VisitorRegistry.Services;
-using VisitorRegistry.Infrastructure;
+using VisitorRegistry.Services.Visitors;
 using VisitorRegistry.Web.Infrastructure;
 using VisitorRegistry.Web.SignalR.Hubs;
+
 
 namespace VisitorRegistry.Web
 {
@@ -32,6 +35,8 @@ namespace VisitorRegistry.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+
+            services.AddScoped<VisitorService>();
 
             services.AddDbContext<TemplateDbContext>(options =>
             {
@@ -83,7 +88,11 @@ namespace VisitorRegistry.Web
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // Configure the HTTP request pipeline.
-            if (!env.IsDevelopment())
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage(); // Mostra errori completi
+            }
+            else
             {
                 app.UseExceptionHandler("/Home/Error");
 
@@ -102,20 +111,51 @@ namespace VisitorRegistry.Web
             app.UseAuthentication();
             app.UseAuthorization();
 
-            var node_modules = new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "node_modules");
-            var areas = new CompositePhysicalFileProvider(Directory.GetCurrentDirectory(), "Areas");
-            var compositeFp = new CustomCompositeFileProvider(env.WebRootFileProvider, node_modules, areas);
-            env.WebRootFileProvider = compositeFp;
+
+
+
+            // Cartelle da usare come provider
+            var baseFolder = Directory.GetCurrentDirectory();
+            var relativeFolders = new[] { "wwwroot", "node_modules", "Areas" };
+
+            var providers = new List<IFileProvider>();
+
+            foreach (var folder in relativeFolders)
+            {
+                var fullPath = Path.Combine(baseFolder, folder);
+
+                // Se la cartella non esiste, la crea
+                if (!Directory.Exists(fullPath))
+                    Directory.CreateDirectory(fullPath);
+
+                providers.Add(new PhysicalFileProvider(fullPath));
+            }
+
+            // Aggiungi anche il WebRoot preesistente
+            providers.Add(env.WebRootFileProvider);
+
+            // Combina tutto
+            var compositeProvider = new CompositeFileProvider(providers);
+
+            // Imposta il WebRootFileProvider
+            env.WebRootFileProvider = compositeProvider;
+
             app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
-                // ROUTING PER HUB
                 endpoints.MapHub<TemplateHub>("/templateHub");
 
+                // Route area Example
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
+
+                // Route per VisitorController
+                endpoints.MapControllerRoute("visitor", "{controller=Visitor}/{action=Index}/{id?}");
+
+                // Default route
                 endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
             });
+
         }
     }
 
