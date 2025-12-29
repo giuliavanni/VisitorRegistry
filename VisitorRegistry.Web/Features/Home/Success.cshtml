@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Registrazione completata";
+}
+
+<h1>Registrazione completata ✅</h1>
+
+<p>Mostra questo QR code all’ingresso:</p>
+
+<img src="data:image/png;base64,@ViewBag.QrCodeImage"
+     alt="QR Code"
+     style="width:250px;height:250px" />
+
+<br />
+<br />
+
+<a asp-action="Index">Registra un nuovo visitatore</a>

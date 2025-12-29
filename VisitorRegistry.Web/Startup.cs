@@ -153,7 +153,8 @@ namespace VisitorRegistry.Web
                 endpoints.MapControllerRoute("visitor", "{controller=Visitor}/{action=Index}/{id?}");
 
                 // Default route
-                endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
+                //endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 
         }
