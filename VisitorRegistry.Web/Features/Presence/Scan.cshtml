@@ -1,19 +1,25 @@
 ﻿@{
-    ViewData["Title"] = "Scan QR";
+    ViewBag.Title = "Check-Out QR";
 }
 
-<h2>Simulazione Scan QR</h2>
-
-<form method="post">
-    @Html.AntiForgeryToken()
-
-    <input type="text" name="qrCode" placeholder="Inserisci QR code" required />
-    <button type="submit">Invia</button>
-</form>
+<h2>Check-Out</h2>
 
 @if (ViewBag.Message != null)
 {
-    <p style="color:@(ViewBag.Success ? "green" : "red")">
+    <div class="alert @(ViewBag.Success ? "alert-success" : "alert-danger")">
         @ViewBag.Message
-    </p>
+    </div>
 }
+
+<form asp-action="Scan" method="post">
+    <div class="form-group">
+        <label for="qrCode">Inserisci QR code:</label>
+        <input type="text" id="qrCode" name="qrCode" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-success mt-2">Invia</button>
+
+    <!-- Bottone per tornare alla Home / Nuovo visitatore -->
+    <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+        Nuovo visitatore
+    </a>
+</form>
