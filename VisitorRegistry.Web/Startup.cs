@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using VisitorRegistry.Services;
 using VisitorRegistry.Services.Visitors;
 using VisitorRegistry.Web.Infrastructure;
@@ -37,6 +37,8 @@ namespace VisitorRegistry.Web
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddScoped<VisitorService>();
+
+            services.AddScoped<PresenceService>();
 
             services.AddDbContext<TemplateDbContext>(options =>
             {

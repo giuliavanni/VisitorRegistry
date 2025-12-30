@@ -100,5 +100,20 @@ namespace VisitorRegistry.Services.Visitors
             await _db.SaveChangesAsync();
             return true;
         }
+
+        public virtual async Task<VisitorDetailDTO?> GetByQrCode(string qr)
+        {
+            return await _db.Visitors
+                .Where(v => v.QrCode == qr)
+                .Select(v => new VisitorDetailDTO
+                {
+                    Id = v.Id,
+                    Nome = v.Nome,
+                    Cognome = v.Cognome,
+                    DataVisita = v.DataVisita,
+                    QrCode = v.QrCode
+                })
+                .FirstOrDefaultAsync();
+        }
     }
 }
