@@ -115,5 +115,11 @@ namespace VisitorRegistry.Services.Visitors
                 })
                 .FirstOrDefaultAsync();
         }
+
+        public virtual async Task<Visitor?> GetByQrCodeAsync(string qrCode)
+        {
+            return await _db.Visitors
+                .FirstOrDefaultAsync(v => v.QrCode == qrCode);
+        }
     }
 }

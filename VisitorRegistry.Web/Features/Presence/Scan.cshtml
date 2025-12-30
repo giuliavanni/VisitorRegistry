@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Scan QR";
+}
+
+<h2>Simulazione Scan QR</h2>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="text" name="qrCode" placeholder="Inserisci QR code" required />
+    <button type="submit">Invia</button>
+</form>
+
+@if (ViewBag.Message != null)
+{
+    <p style="color:@(ViewBag.Success ? "green" : "red")">
+        @ViewBag.Message
+    </p>
+}

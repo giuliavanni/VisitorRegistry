@@ -23,18 +23,14 @@ namespace VisitorRegistry.Web.Features.Home
             _presenceService = presenceService;
         }
 
-        // =========================
         // Mostra form registrazione visitatore
-        // =========================
         [HttpGet]
         public virtual IActionResult Index()
         {
             return View("Home");
         }
 
-        // =========================
         // Salva visitatore e genera QR code + check-in automatico
-        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<IActionResult> Index(VisitorViewModel model)
@@ -56,14 +52,12 @@ namespace VisitorRegistry.Web.Features.Home
             var visitorId = await _visitorService.Create(dto);
 
             // Check-in automatico
-            await _presenceService.CheckInAsync(visitorId);
+            await _presenceService.ToggleByVisitorIdAsync(visitorId);
 
             return RedirectToAction("Success", new { qr = qrContent });
         }
 
-        // =========================
         // Mostra QR code della registrazione
-        // =========================
         [HttpGet]
         public virtual IActionResult Success(string qr)
         {
@@ -82,34 +76,7 @@ namespace VisitorRegistry.Web.Features.Home
             return View();
         }
 
-        // =========================
-        // Scan QR code per check-in / check-out
-        // =========================
-        [HttpPost]
-        public virtual async Task<IActionResult> ScanQr(string qr)
-        {
-            var found = await _visitorService.GetByQrCode(qr);
-            if (found == null)
-                return NotFound("QR non valido");
-
-            var current = await _presenceService.GetVisitorsInsideAsync();
-            bool isInside = current.Exists(p => p.VisitorId == found.Id);
-
-            if (isInside)
-            {
-                await _presenceService.CheckOutAsync(found.Id);
-                return Ok(new { message = "Check-out completato" });
-            }
-            else
-            {
-                await _presenceService.CheckInAsync(found.Id);
-                return Ok(new { message = "Check-in completato" });
-            }
-        }
-
-        // =========================
         // Cambia lingua
-        // =========================
         [HttpPost]
         public virtual IActionResult ChangeLanguageTo(string cultureName)
         {

@@ -3,120 +3,92 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using VisitorRegistry.Services.Visitors;
 
 namespace VisitorRegistry.Services
 {
     public class PresenceService
     {
         private readonly TemplateDbContext _db;
-        private readonly VisitorService _visitorService;
 
-        public PresenceService(TemplateDbContext db, VisitorService visitorService)
+        public PresenceService(TemplateDbContext db)
         {
             _db = db;
-            _visitorService = visitorService;
         }
 
-        // =========================
-        // Check-in tramite QR code
-        // =========================
-        public async Task<bool> CheckIn(string qrCode)
+        // =====================================
+        // Toggle check-in / check-out via QR
+        // =====================================
+        public virtual async Task<PresenceActionResult> ToggleByQrAsync(string qrCode)
         {
-            var visitor = await _db.Visitors.FirstOrDefaultAsync(v => v.QrCode == qrCode);
+            var visitor = await _db.Visitors
+                .FirstOrDefaultAsync(v => v.QrCode == qrCode);
+
             if (visitor == null)
-                return false;
+                return PresenceActionResult.InvalidQr;
 
-            var presence = new Presence
-            {
-                VisitorId = visitor.Id,
-                CheckInTime = DateTime.Now,
-                CheckOutTime = null
-            };
-
-            _db.Presences.Add(presence);
-            await _db.SaveChangesAsync();
-            return true;
+            return await ToggleByVisitorIdAsync(visitor.Id);
         }
 
-        // =========================
-        // Check-out tramite QR code
-        // =========================
-        public async Task<bool> CheckOut(string qrCode)
+        // =====================================
+        // Toggle check-in / check-out via VisitorId
+        // =====================================
+        public virtual async Task<PresenceActionResult> ToggleByVisitorIdAsync(int visitorId)
         {
-            var visitor = await _db.Visitors.FirstOrDefaultAsync(v => v.QrCode == qrCode);
-            if (visitor == null)
-                return false;
-
-            var presence = await _db.Presences
-                .Where(p => p.VisitorId == visitor.Id && p.CheckOutTime == null)
-                .OrderByDescending(p => p.CheckInTime)
-                .FirstOrDefaultAsync();
-
-            if (presence == null)
-                return false;
-
-            presence.CheckOutTime = DateTime.Now;
-            await _db.SaveChangesAsync();
-            return true;
-        }
-
-        // =========================
-        // Check-in automatico tramite visitorId (opzionale)
-        // =========================
-        public async Task<Presence> CheckInAsync(int visitorId)
-        {
-            var presence = new Presence
-            {
-                VisitorId = visitorId,
-                CheckInTime = DateTime.Now,
-                CheckOutTime = null
-            };
-
-            _db.Presences.Add(presence);
-            await _db.SaveChangesAsync();
-
-            return presence;
-        }
-
-        // =========================
-        // Check-out automatico tramite visitorId (opzionale)
-        // =========================
-        public async Task<bool> CheckOutAsync(int visitorId)
-        {
-            var presence = await _db.Presences
+            var openPresence = await _db.Presences
                 .Where(p => p.VisitorId == visitorId && p.CheckOutTime == null)
                 .OrderByDescending(p => p.CheckInTime)
                 .FirstOrDefaultAsync();
 
-            if (presence == null)
-                return false;
+            if (openPresence == null)
+            {
+                _db.Presences.Add(new Presence
+                {
+                    VisitorId = visitorId,
+                    CheckInTime = DateTime.Now
+                });
 
-            presence.CheckOutTime = DateTime.Now;
-            await _db.SaveChangesAsync();
-            return true;
+                await _db.SaveChangesAsync();
+                return PresenceActionResult.CheckedIn;
+            }
+            else
+            {
+                openPresence.CheckOutTime = DateTime.Now;
+                await _db.SaveChangesAsync();
+                return PresenceActionResult.CheckedOut;
+            }
         }
 
-        // =========================
-        // Ottieni tutte le presenze di un visitatore
-        // =========================
-        public async Task<List<Presence>> GetPresencesByVisitorAsync(int visitorId)
-        {
-            return await _db.Presences
-                .Where(p => p.VisitorId == visitorId)
-                .OrderByDescending(p => p.CheckInTime)
-                .ToListAsync();
-        }
-
-        // =========================
-        // Ottieni visitatori attualmente dentro
-        // =========================
-        public async Task<List<Presence>> GetVisitorsInsideAsync()
+        // =====================================
+        // Visitatori attualmente dentro
+        // =====================================
+        public virtual async Task<List<Presence>> GetVisitorsInsideAsync()
         {
             return await _db.Presences
                 .Where(p => p.CheckOutTime == null)
                 .Include(p => p.Visitor)
                 .ToListAsync();
         }
+
+        // =====================================
+        // Storico presenze di un visitatore
+        // =====================================
+        public virtual async Task<List<Presence>> GetPresencesByVisitorAsync(int visitorId)
+        {
+            return await _db.Presences
+                .Where(p => p.VisitorId == visitorId)
+                .OrderByDescending(p => p.CheckInTime)
+                .ToListAsync();
+        }
+    }
+
+    // =====================================
+    // Risultato tipizzato (MOLTO meglio di bool)
+    // =====================================
+    public enum PresenceActionResult
+    {
+        InvalidQr,
+        CheckedIn,
+        CheckedOut
     }
 }
+

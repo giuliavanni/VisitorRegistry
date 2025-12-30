@@ -16,15 +16,28 @@ namespace VisitorRegistry.Web.Features.CheckIn
         [HttpPost]
         public virtual async Task<IActionResult> CheckIn(string qrCode)
         {
-            var success = await _presenceService.CheckIn(qrCode);
-            return success ? Ok() : BadRequest();
+            var result = await _presenceService.ToggleByQrAsync(qrCode);
+
+            if (result == PresenceActionResult.CheckedIn)
+                return Ok(new { message = "Check-in completato" });
+            else if (result == PresenceActionResult.CheckedOut)
+                return Ok(new { message = "Check-out completato" });
+            else
+                return BadRequest(new { message = "QR non valido" });
         }
 
         [HttpPost]
         public virtual async Task<IActionResult> CheckOut(string qrCode)
         {
-            var success = await _presenceService.CheckOut(qrCode);
-            return success ? Ok() : BadRequest();
+            var result = await _presenceService.ToggleByQrAsync(qrCode);
+
+            if (result == PresenceActionResult.CheckedOut)
+                return Ok(new { message = "Check-out completato" });
+            else if (result == PresenceActionResult.CheckedIn)
+                return Ok(new { message = "Check-in completato" });
+            else
+                return BadRequest(new { message = "QR non valido" });
         }
     }
 }
+
