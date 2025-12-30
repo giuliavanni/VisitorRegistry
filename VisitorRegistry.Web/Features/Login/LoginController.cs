@@ -46,7 +46,7 @@ namespace VisitorRegistry.Web.Features.Login
             if (string.IsNullOrWhiteSpace(returnUrl) == false)
                 return Redirect(returnUrl);
 
-            return RedirectToAction(MVC.Example.Users.Index());
+            return RedirectToAction("Index", "Visitor");
         }
 
         [HttpGet]
@@ -54,10 +54,10 @@ namespace VisitorRegistry.Web.Features.Login
         {
             if (HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.IsAuthenticated)
             {
-                if (string.IsNullOrWhiteSpace(returnUrl) == false)
-                    return Redirect(returnUrl);
-
-                return RedirectToAction(MVC.Example.Users.Index());
+               // if (string.IsNullOrWhiteSpace(returnUrl) == false)
+               //     return Redirect(returnUrl);
+               //
+               // return RedirectToAction("Index", "Visitor");
             }
 
             var model = new LoginViewModel

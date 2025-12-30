@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -148,15 +149,16 @@ namespace VisitorRegistry.Web
             {
                 endpoints.MapHub<TemplateHub>("/templateHub");
 
+                // Default route
+                //endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+
                 // Route area Example
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");
 
                 // Route per VisitorController
                 endpoints.MapControllerRoute("visitor", "{controller=Visitor}/{action=Index}/{id?}");
 
-                // Default route
-                //endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
 
         }

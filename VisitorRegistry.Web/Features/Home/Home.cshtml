@@ -18,6 +18,14 @@
     <button type="submit">Salva Visitatore</button>
 </form>
 
+<div style="position: fixed; bottom: 20px; right: 20px;">
+    <a asp-controller="Login"
+       asp-action="Login"
+       class="btn btn-outline-dark btn-sm">
+        Admin
+    </a>
+</div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
