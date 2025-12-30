@@ -11,10 +11,8 @@ namespace VisitorRegistry.Services.Shared
         public int Id { get; set; }
 
         public int VisitorId { get; set; }
-
-        public bool IsInside { get; set; }
-
-        public DateTime Timestamp { get; set; }
+        public DateTime CheckInTime { get; set; }
+        public DateTime? CheckOutTime { get; set; }
 
         // Navigazione EF
         public Visitor Visitor { get; set; } = null!;

@@ -54,7 +54,7 @@ namespace VisitorRegistry.Services
             );
 
             modelBuilder.Entity<Presence>().HasData(
-                new Presence { Id = 1, Date = datePresence, VisitorId = 1, IsInside = 1 }
+                new Presence { Id = 1, Date = datePresence, VisitorId = 1, CheckInTime = new DateTime(2025, 12, 24, 10, 0, 0),CheckOutTime = null }
             );
         }
     }
@@ -78,8 +78,8 @@ public class Presence
 {
     public int Id { get; set; }
     public DateTime Date { get; set; }
-
-    public int IsInside { get; set; }
+    public DateTime CheckInTime { get; set; }   
+    public DateTime? CheckOutTime { get; set; }
 
     // Chiave esterna e navigation property
     public int VisitorId { get; set; }

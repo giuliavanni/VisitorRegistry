@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VisitorRegistry.Services;
 
@@ -10,9 +11,11 @@ using VisitorRegistry.Services;
 namespace VisitorRegistry.Migrations
 {
     [DbContext(typeof(TemplateDbContext))]
-    partial class TemplateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251229211715_UpdateVisitorTab")]
+    partial class UpdateVisitorTab
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.20");
@@ -23,14 +26,11 @@ namespace VisitorRegistry.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("CheckInTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("CheckOutTime")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("IsInside")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("VisitorId")
                         .HasColumnType("INTEGER");
@@ -45,8 +45,8 @@ namespace VisitorRegistry.Migrations
                         new
                         {
                             Id = 1,
-                            CheckInTime = new DateTime(2025, 12, 24, 10, 0, 0, 0, DateTimeKind.Unspecified),
                             Date = new DateTime(2025, 12, 24, 10, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsInside = 1,
                             VisitorId = 1
                         });
                 });
@@ -112,7 +112,7 @@ namespace VisitorRegistry.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("705bebd8-fb42-4392-9b5a-badbb3750d04"),
+                            Id = new Guid("05cfad08-9547-4f82-84ab-ab4603d62139"),
                             Email = "admin@example.com",
                             FirstName = "Costanzo",
                             LastName = "Buonarroti",
