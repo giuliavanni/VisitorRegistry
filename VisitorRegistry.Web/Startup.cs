@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -52,6 +54,15 @@ namespace VisitorRegistry.Web
             {
                 options.LoginPath = "/Login/Login";
                 options.LogoutPath = "/Login/Logout";
+                options.AccessDeniedPath = "/Login/Login";
+
+                // 🔐 Cookie DI SESSIONE
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
             });
 
             var builder = services.AddMvc()

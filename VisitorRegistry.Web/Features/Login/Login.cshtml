@@ -2,35 +2,48 @@
 @{
     ViewData["Title"] = "Login";
 }
+
 <div class="container">
-    <form method="post" role="form" autocomplete="off">
-        <input asp-for="ReturnUrl" type="hidden" />
+    <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="col-12 col-md-6 col-lg-4">
 
-        <div class="form-group">
-            <label asp-for=Email class="onit-label-required"></label>
-            <div class="input-group onit-input-group-union">
-                <input asp-for="Email" class="form-control" type="text" />
-            </div>
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
+            <form asp-action="Login"
+                  method="post"
+                  role="form"
+                  autocomplete="off"
+                  class="card p-4 shadow-sm">
 
-        <div class="form-group">
-            <label asp-for=Password class="onit-label-required"></label>
-            <div class="input-group onit-input-group-union">
-                <input asp-for="Password" class="form-control" type="password" />
-            </div>
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
+                <input asp-for="ReturnUrl" type="hidden" />
 
-        <div class="form-group">
-            <div class="form-check form-switch">
-                <input asp-for="RememberMe" class="form-check-input" role="switch">
-                <label asp-for="RememberMe" class="form-check-label">Rimani Connesso</label>
-            </div>
-        </div>
+                <h3 class="text-center mb-4">Area Admin</h3>
 
-        <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-primary">Accedi</button>
+                <!-- Email -->
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" type="text" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" type="password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <!-- Submit -->
+                <div class="form-group text-center mt-4">
+                    <button type="submit" class="btn btn-primary w-100">Accedi</button>
+                </div>
+
+            </form>
+
         </div>
-    </form>
+    </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

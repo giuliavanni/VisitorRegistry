@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
@@ -27,23 +27,22 @@ namespace VisitorRegistry.Web.Features.Login
             _sharedLocalizer = sharedLocalizer;
         }
 
-        private ActionResult LoginAndRedirect(UserDetailDTO utente, string returnUrl, bool rememberMe)
+        private async Task<ActionResult> LoginAndRedirect(UserDetailDTO utente, string returnUrl)
         {
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, utente.Id.ToString()),
-                new Claim(ClaimTypes.Email, utente.Email)
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, utente.Id.ToString()),
+        new Claim(ClaimTypes.Email, utente.Email)
+    };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), new AuthenticationProperties
-            {
-                ExpiresUtc = (rememberMe) ? DateTimeOffset.UtcNow.AddMonths(3) : null,
-                IsPersistent = rememberMe,
-            });
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity)
+            );
 
-            if (string.IsNullOrWhiteSpace(returnUrl) == false)
+            if (!string.IsNullOrWhiteSpace(returnUrl))
                 return Redirect(returnUrl);
 
             return RedirectToAction("Index", "Visitor");
@@ -54,10 +53,10 @@ namespace VisitorRegistry.Web.Features.Login
         {
             if (HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.IsAuthenticated)
             {
-               // if (string.IsNullOrWhiteSpace(returnUrl) == false)
-               //     return Redirect(returnUrl);
-               //
-               // return RedirectToAction("Index", "Visitor");
+                // if (string.IsNullOrWhiteSpace(returnUrl) == false)
+                //     return Redirect(returnUrl);
+                //
+                // return RedirectToAction("Index", "Visitor");
             }
 
             var model = new LoginViewModel
@@ -81,21 +80,22 @@ namespace VisitorRegistry.Web.Features.Login
                         Password = model.Password,
                     });
 
-                    return LoginAndRedirect(utente, model.ReturnUrl, model.RememberMe);
+                    return await LoginAndRedirect(utente, model.ReturnUrl);
                 }
                 catch (LoginException e)
                 {
                     ModelState.AddModelError(LoginErrorModelStateKey, e.Message);
                 }
             }
-
-            return RedirectToAction(MVC.Login.Login());
+            return View(model);
         }
 
         [HttpPost]
-        public virtual IActionResult Logout()
+        public async virtual Task<IActionResult> Logout()
         {
-            HttpContext.SignOutAsync();
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
 
             Alerts.AddSuccess(this, "Utente scollegato correttamente");
             return RedirectToAction(MVC.Login.Login());
