@@ -32,6 +32,8 @@ namespace VisitorRegistry.Services.Visitors
         public int Id { get; set; }
         public string Nome { get; set; }
         public string Cognome { get; set; }
+        public DateTime CheckIn { get; set; }
+        public DateTime? CheckOut { get; set; }
 
         public string QrCode { get; set; }
     }

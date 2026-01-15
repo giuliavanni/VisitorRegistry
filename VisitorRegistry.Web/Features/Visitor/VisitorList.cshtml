@@ -8,6 +8,8 @@
             <th>Id</th>
             <th>Nome</th>
             <th>Cognome</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
         </tr>
     </thead>
     <tbody>
@@ -17,6 +19,17 @@
                 <td>@visitor.Id</td>
                 <td>@visitor.Nome</td>
                 <td>@visitor.Cognome</td>
+                <td>@visitor.CheckIn.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>
+                    @if (visitor.CheckOut.HasValue)
+                    {
+                        @visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm")
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                </td>
             </tr>
         }
     </tbody>

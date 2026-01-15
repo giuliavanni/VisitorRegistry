@@ -40,13 +40,16 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         public async Task<List<VisitorListDTO>> GetAll()
         {
-            return await _db.Visitors
-                .OrderBy(v => v.Cognome)
-                .Select(v => new VisitorListDTO
+            return await _db.Presences
+                .Include(p => p.Visitor)
+                .OrderByDescending(p => p.CheckInTime)
+                .Select(p => new VisitorListDTO
                 {
-                    Id = v.Id,
-                    Nome = v.Nome,
-                    Cognome = v.Cognome
+                    Id = p.Visitor.Id,
+                    Nome = p.Visitor.Nome,
+                    Cognome = p.Visitor.Cognome,
+                    CheckIn = p.CheckInTime,
+                    CheckOut = p.CheckOutTime
                 })
                 .ToListAsync();
         }
