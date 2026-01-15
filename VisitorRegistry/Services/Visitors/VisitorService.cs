@@ -40,16 +40,32 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         public async Task<List<VisitorListDTO>> GetAll()
         {
-            return await _db.Presences
-                .Include(p => p.Visitor)
-                .OrderByDescending(p => p.CheckInTime)
-                .Select(p => new VisitorListDTO
+            return await _db.Visitors
+                .Include(v => v.Presences)
+                .OrderBy(v => v.Cognome)
+                .Select(v => new VisitorListDTO
                 {
-                    Id = p.Visitor.Id,
-                    Nome = p.Visitor.Nome,
-                    Cognome = p.Visitor.Cognome,
-                    CheckIn = p.CheckInTime,
-                    CheckOut = p.CheckOutTime
+                    Id = v.Id,
+                    Nome = v.Nome,
+                    Cognome = v.Cognome,
+
+                    CheckIn = v.Presences
+                        .OrderByDescending(p => p.CheckInTime)
+                        .Select(p => (DateTime?)p.CheckInTime)
+                        .FirstOrDefault(),
+
+                    CheckOut = v.Presences
+                        .OrderByDescending(p => p.CheckInTime)
+                        .Select(p => p.CheckOutTime)
+                        .FirstOrDefault(),
+
+                    StatoVisita =
+                        v.Presences.Any() == false
+                            ? "Visita programmata"
+                            : v.Presences
+                                .OrderByDescending(p => p.CheckInTime)
+                                .Select(p => p.CheckOutTime == null ? "Dentro" : "Uscito")
+                                .FirstOrDefault()
                 })
                 .ToListAsync();
         }

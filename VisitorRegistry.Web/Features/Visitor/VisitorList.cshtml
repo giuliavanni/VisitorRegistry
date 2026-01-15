@@ -8,8 +8,10 @@
             <th>Id</th>
             <th>Nome</th>
             <th>Cognome</th>
+            <th>Stato Visita</th>
             <th>Check-in</th>
             <th>Check-out</th>
+            <th>Gestione</th>
         </tr>
     </thead>
     <tbody>
@@ -19,7 +21,24 @@
                 <td>@visitor.Id</td>
                 <td>@visitor.Nome</td>
                 <td>@visitor.Cognome</td>
-                <td>@visitor.CheckIn.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>
+                    @if (visitor.CheckIn == default)
+                    {
+                        <span class="badge bg-warning">Visita programmata</span>
+                    }
+                    else if (visitor.CheckOut == null)
+                    {
+                        <span class="badge bg-success">Visita in corso</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Visita terminata</span>
+                    }
+                </td>
+
+                <td>
+                    @(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("HH:mm") : "—")
+                </td>
                 <td>
                     @if (visitor.CheckOut.HasValue)
                     {
