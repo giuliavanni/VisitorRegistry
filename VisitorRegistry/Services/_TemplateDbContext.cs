@@ -37,7 +37,6 @@ namespace VisitorRegistry.Services
 
             var userId = Guid.NewGuid();
             var dateVisita = new DateTime(2025, 12, 24);
-            var datePresence = new DateTime(2025, 12, 24, 10, 0, 0);
             
             var sha256 = SHA256.Create();
             var hashed = Convert.ToBase64String(
@@ -54,7 +53,7 @@ namespace VisitorRegistry.Services
             );
 
             modelBuilder.Entity<Presence>().HasData(
-                new Presence { Id = 1, Date = datePresence, VisitorId = 1, CheckInTime = new DateTime(2025, 12, 24, 10, 0, 0),CheckOutTime = null }
+                new Presence { Id = 1, VisitorId = 1, CheckInTime = new DateTime(2025, 12, 24, 10, 0, 0),CheckOutTime = null }
             );
         }
     }
@@ -77,7 +76,6 @@ public class Visitor
 public class Presence
 {
     public int Id { get; set; }
-    public DateTime Date { get; set; }
     public DateTime CheckInTime { get; set; }   
     public DateTime? CheckOutTime { get; set; }
 

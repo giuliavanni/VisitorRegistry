@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VisitorRegistry.Services;
 
@@ -10,9 +11,11 @@ using VisitorRegistry.Services;
 namespace VisitorRegistry.Migrations
 {
     [DbContext(typeof(TemplateDbContext))]
-    partial class TemplateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260115104936_RemoveDateFromPresence")]
+    partial class RemoveDateFromPresence
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.20");
@@ -29,6 +32,9 @@ namespace VisitorRegistry.Migrations
                     b.Property<DateTime?>("CheckOutTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("VisitorId")
                         .HasColumnType("INTEGER");
 
@@ -43,6 +49,7 @@ namespace VisitorRegistry.Migrations
                         {
                             Id = 1,
                             CheckInTime = new DateTime(2025, 12, 24, 10, 0, 0, 0, DateTimeKind.Unspecified),
+                            Date = new DateTime(2025, 12, 24, 10, 0, 0, 0, DateTimeKind.Unspecified),
                             VisitorId = 1
                         });
                 });
@@ -108,7 +115,7 @@ namespace VisitorRegistry.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("10f9caa4-b399-44a5-be91-6c91f95bf555"),
+                            Id = new Guid("847146fe-603c-4955-a4d7-03688f522a83"),
                             Email = "admin@example.com",
                             FirstName = "Costanzo",
                             LastName = "Buonarroti",
