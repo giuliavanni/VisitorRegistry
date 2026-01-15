@@ -162,7 +162,7 @@ namespace VisitorRegistry.Web
 
                 // Default route
                 //endpoints.MapControllerRoute("default", "{controller=Login}/{action=Login}");
-                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Start}/{id?}");
 
                 // Route area Example
                 endpoints.MapAreaControllerRoute("Example", "Example", "Example/{controller=Users}/{action=Index}/{id?}");

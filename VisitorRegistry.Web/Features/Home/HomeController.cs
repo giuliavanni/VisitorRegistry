@@ -23,9 +23,16 @@ namespace VisitorRegistry.Web.Features.Home
             _presenceService = presenceService;
         }
 
+        [HttpGet]
+        public virtual IActionResult Start()
+        {
+            return View();
+        }
+
+
         // Mostra form registrazione visitatore
         [HttpGet]
-        public virtual IActionResult Index()
+        public virtual IActionResult Register()
         {
             return View("Home");
         }
@@ -33,7 +40,7 @@ namespace VisitorRegistry.Web.Features.Home
         // Salva visitatore e genera QR code + check-in automatico
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<IActionResult> Index(VisitorViewModel model)
+        public virtual async Task<IActionResult> Register(VisitorViewModel model)
         {
             if (!ModelState.IsValid)
                 return View("Home", model);

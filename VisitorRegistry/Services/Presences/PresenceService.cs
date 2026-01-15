@@ -79,16 +79,65 @@ namespace VisitorRegistry.Services
                 .OrderByDescending(p => p.CheckInTime)
                 .ToListAsync();
         }
+
+        public virtual async Task<PresenceActionResult> CheckInByQrAsync(string qrCode)
+        {
+            var visitor = await _db.Visitors
+                .Include(v => v.Presences)
+                .FirstOrDefaultAsync(v => v.QrCode == qrCode);
+
+            if (visitor == null)
+                return PresenceActionResult.InvalidQr;
+
+            var lastPresence = visitor.Presences.OrderByDescending(p => p.CheckInTime).FirstOrDefault();
+
+            if (lastPresence != null && lastPresence.CheckOutTime == null)
+                return PresenceActionResult.AlreadyCheckedIn;
+
+            var newPresence = new Presence
+            {
+                VisitorId = visitor.Id,
+                CheckInTime = DateTime.Now
+            };
+
+            _db.Presences.Add(newPresence);
+            await _db.SaveChangesAsync();
+
+            return PresenceActionResult.CheckedIn;
+        }
+
+        public virtual async Task<PresenceActionResult> CheckOutByQrAsync(string qrCode)
+        {
+            var visitor = await _db.Visitors
+                .Include(v => v.Presences)
+                .FirstOrDefaultAsync(v => v.QrCode == qrCode);
+
+            if (visitor == null)
+                return PresenceActionResult.InvalidQr;
+
+            var lastPresence = visitor.Presences.OrderByDescending(p => p.CheckInTime).FirstOrDefault();
+
+            if (lastPresence == null || lastPresence.CheckOutTime != null)
+                return PresenceActionResult.AlreadyCheckedOut;
+
+            lastPresence.CheckOutTime = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            return PresenceActionResult.CheckedOut;
+        }
     }
 
     // =====================================
-    // Risultato tipizzato (MOLTO meglio di bool)
+    // Risultato tipizzato 
     // =====================================
     public enum PresenceActionResult
     {
-        InvalidQr,
         CheckedIn,
-        CheckedOut
+        CheckedOut,
+        AlreadyCheckedIn,
+        AlreadyCheckedOut,
+        InvalidQr
     }
+
 }
 

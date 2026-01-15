@@ -1,25 +1,30 @@
 ﻿@{
-    ViewBag.Title = "Check-Out QR";
+    // Recupera mode dalla ViewBag (default "in")
+    var mode = (ViewBag.Mode as string) ?? "in";
+    var message = ViewBag.Message as string;
+    var success = ViewBag.Success as bool? ?? false;
 }
 
-<h2>Check-Out</h2>
+<h2>@(mode == "in" ? "Check-In" : "Check-Out")</h2>
 
-@if (ViewBag.Message != null)
+@if (!string.IsNullOrEmpty(message))
 {
-    <div class="alert @(ViewBag.Success ? "alert-success" : "alert-danger")">
-        @ViewBag.Message
+    <div class="alert @(success ? "alert-success" : "alert-danger")">
+        @message
     </div>
 }
 
 <form asp-action="Scan" method="post">
+    <!-- Passa il mode per sapere se check-in o check-out -->
+    <input type="hidden" name="mode" value="@mode" />
+
     <div class="form-group">
         <label for="qrCode">Inserisci QR code:</label>
         <input type="text" id="qrCode" name="qrCode" class="form-control" />
     </div>
-    <button type="submit" class="btn btn-success mt-2">Invia</button>
 
-    <!-- Bottone per tornare alla Home / Nuovo visitatore -->
-    <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
-        Nuovo visitatore
-    </a>
+    <button type="submit" class="btn @(mode == "in" ? "btn-success" : "btn-danger") mt-2">
+        Invia
+    </button>
 </form>
+
