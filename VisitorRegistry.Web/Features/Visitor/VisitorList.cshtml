@@ -29,6 +29,15 @@
                     else if (visitor.CheckOut == null)
                     {
                         <span class="badge bg-success">Visita in corso</span>
+                        <div class="mt-1">
+                            <a class="btn btn-danger btn-sm"
+                               asp-controller="Presence"
+                               asp-action="Scan"
+                               asp-route-mode="out"
+                               asp-route-qrCode="@visitor.QrCode">
+                                Forza Check-Out
+                            </a>
+                        </div>
                     }
                     else
                     {
@@ -37,7 +46,7 @@
                 </td>
 
                 <td>
-                    @(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("HH:mm") : "—")
+                    @(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "—")
                 </td>
                 <td>
                     @if (visitor.CheckOut.HasValue)
@@ -50,13 +59,12 @@
                     }
                 </td>
                 <td>
-                    <a class="btn btn-info btn-sm me-1"
-                       asp-action="Details"
-                       asp-controller="Presence"
-                       asp-route-id="@visitor.CurrentPresenceId">
+                    <button class="btn btn-info btn-sm me-1"
+                            data-bs-toggle="modal"
+                            data-bs-target="#detailsModal"
+                            data-presence-id="@visitor.CurrentPresenceId">
                         Dettagli visita
-                    </a>
-
+                    </button>
                     <a class="btn btn-warning btn-sm"
                        asp-action="Edit"
                        asp-controller="Visitor"
@@ -69,3 +77,22 @@
         }
     </tbody>
 </table>
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Dettagli visita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <p class="text-center">Caricamento...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/js/presenceModal.js"></script>
+
+
+

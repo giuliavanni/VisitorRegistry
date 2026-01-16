@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using VisitorRegistry.Services;
 using PresenceModel = VisitorRegistry.Services.Shared.Presence; // alias per la classe Presence
@@ -16,9 +18,10 @@ namespace VisitorRegistry.Web.Features.Presence
 
         // Pagina di scan QR per check-in / check-out
         [HttpGet]
-        public virtual IActionResult Scan(string mode)
+        public virtual IActionResult Scan(string mode, string qrCode)
         {
             ViewBag.Mode = mode ?? "in"; // default a check-in
+            ViewBag.QRCode = qrCode;
             ViewBag.Success = null;
             ViewBag.Message = null;
             return View();
@@ -35,19 +38,20 @@ namespace VisitorRegistry.Web.Features.Presence
 
             var model = new PresenceDetailsViewModel
             {
-                Id = presence.Id,
                 Nome = presence.Visitor.Nome,
                 Cognome = presence.Visitor.Cognome,
+                Ditta = presence.Visitor.Ditta ?? "—",
+                Referente = presence.Visitor.Referente ?? "—",
                 CheckInTime = presence.CheckInTime,
                 CheckOutTime = presence.CheckOutTime,
-                Referente = presence.Visitor.Referente,
-                Ditta = presence.Visitor.Ditta
+                DataVisita = presence.CheckInTime != default(DateTime) ? presence.CheckInTime.Date : DateTime.Today,
+                QrCode = presence.Visitor.QrCode
             };
 
-            return View(model);
+            return Json(model);
         }
 
-
+        
         // Submit QR per check-in / check-out
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -6,6 +6,8 @@
 <p><strong>Cognome:</strong> @Model.Cognome</p>
 <p><strong>Ditta:</strong> @Model.Ditta</p>
 <p><strong>Referente:</strong> @Model.Referente</p>
-<p><strong>Check-in:</strong> @(Model.CheckInTime?.ToString("dd/MM/yyyy HH:mm") ?? "Non ancora effettuato")</p>
-<p><strong>Check-out:</strong> @(Model.CheckOutTime?.ToString("dd/MM/yyyy HH:mm") ?? "Non ancora effettuato")</p>
+<p><strong>Data visita:</strong> @(Model.DataVisita.ToString("dd/MM/yyyy"))</p>
+<p><strong>Check-in:</strong> @(Model.CheckInTime?.ToString("HH:mm") ?? "—")</p>
+<p><strong>Check-out:</strong> @(Model.CheckOutTime?.ToString("HH:mm") ?? "Non ancora effettuato")</p>
+
 
