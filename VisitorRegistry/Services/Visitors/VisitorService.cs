@@ -65,7 +65,10 @@ namespace VisitorRegistry.Services.Visitors
                             : v.Presences
                                 .OrderByDescending(p => p.CheckInTime)
                                 .Select(p => p.CheckOutTime == null ? "Dentro" : "Uscito")
-                                .FirstOrDefault()
+                                .FirstOrDefault(),
+                    CurrentPresenceId = v.Presences.OrderByDescending(p => p.CheckInTime)
+                                           .Select(p => (int?)p.Id)
+                                           .FirstOrDefault()
                 })
                 .ToListAsync();
         }

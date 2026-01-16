@@ -1,0 +1,11 @@
+﻿@model VisitorRegistry.Web.Features.Presence.PresenceDetailsViewModel
+
+<h2>Dettagli visita</h2>
+
+<p><strong>Nome:</strong> @Model.Nome</p>
+<p><strong>Cognome:</strong> @Model.Cognome</p>
+<p><strong>Ditta:</strong> @Model.Ditta</p>
+<p><strong>Referente:</strong> @Model.Referente</p>
+<p><strong>Check-in:</strong> @(Model.CheckInTime?.ToString("dd/MM/yyyy HH:mm") ?? "Non ancora effettuato")</p>
+<p><strong>Check-out:</strong> @(Model.CheckOutTime?.ToString("dd/MM/yyyy HH:mm") ?? "Non ancora effettuato")</p>
+

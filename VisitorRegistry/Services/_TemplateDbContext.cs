@@ -66,6 +66,8 @@ public class Visitor
     public string Nome { get; set; }
     public string Cognome { get; set; }
     public DateTime DataVisita { get; set; }
+    public string Ditta { get; set; }
+    public string Referente { get; set; }
     public string QrCode { get; set; }
 
 

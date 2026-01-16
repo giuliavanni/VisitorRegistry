@@ -125,6 +125,22 @@ namespace VisitorRegistry.Services
 
             return PresenceActionResult.CheckedOut;
         }
+        // Restituisce una singola visita per ID presenza
+        public virtual async Task<Presence?> GetByIdAsync(int presenceId)
+        {
+            return await _db.Presences
+                .Include(p => p.Visitor)  // Include i dati del visitatore
+                .FirstOrDefaultAsync(p => p.Id == presenceId);
+        }
+
+        // Opzionale: tutte le visite di un visitor
+        public virtual async Task<List<Presence>> GetAllByVisitorIdAsync(int visitorId)
+        {
+            return await _db.Presences
+                .Where(p => p.VisitorId == visitorId)
+                .OrderByDescending(p => p.CheckInTime)
+                .ToListAsync();
+        }
     }
 
     // =====================================

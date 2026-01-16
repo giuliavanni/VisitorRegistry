@@ -49,6 +49,22 @@
                         <span class="text-muted">—</span>
                     }
                 </td>
+                <td>
+                    <a class="btn btn-info btn-sm me-1"
+                       asp-action="Details"
+                       asp-controller="Presence"
+                       asp-route-id="@visitor.CurrentPresenceId">
+                        Dettagli visita
+                    </a>
+
+                    <a class="btn btn-warning btn-sm"
+                       asp-action="Edit"
+                       asp-controller="Visitor"
+                       asp-route-id="@visitor.Id">
+                        Modifica
+                    </a>
+                </td>
+
             </tr>
         }
     </tbody>

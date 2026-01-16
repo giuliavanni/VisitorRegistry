@@ -34,7 +34,8 @@ namespace VisitorRegistry.Services.Visitors
         public string Cognome { get; set; }
         public DateTime? CheckIn { get; set; }
         public DateTime? CheckOut { get; set; }
-        public string StatoVisita { get; set; } = "Non registrato";
+        public string StatoVisita { get; set; } = "-";
+        public int? CurrentPresenceId { get; set; }   //id della visita mostrata nella riga
         public string QrCode { get; set; }
     }
 }
