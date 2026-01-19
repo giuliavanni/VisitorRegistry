@@ -19,6 +19,58 @@ namespace VisitorRegistry.Web.Features.Presence
             _visitorService = visitorService;
         }
 
+        [HttpGet]
+        public virtual IActionResult Scan(string mode)
+        {
+            // Se il parametro mode non è specificato, di default "in"
+            ViewBag.Mode = mode ?? "in";
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<IActionResult> ProcessScan(string qrCode, string mode)
+        {
+            if (string.IsNullOrEmpty(qrCode))
+            {
+                ViewBag.Mode = mode;
+                ViewBag.Message = "QR code non valido!";
+                ViewBag.Success = false;
+                return View("Scan");
+            }
+
+            // Recupera visitatore dal QR
+            var visitor = await _visitorService.GetByQrCode(qrCode);
+            if (visitor == null)
+            {
+                ViewBag.Mode = mode;
+                ViewBag.Message = "Visitator non trovato!";
+                ViewBag.Success = false;
+                return View("Scan");
+            }
+
+            // Esegui check-in o check-out
+            if (mode == "in")
+            {
+                // Logica check-in
+                visitor.CheckInTime = DateTime.Now;
+            }
+            else
+            {
+                // Logica check-out
+                visitor.CheckOutTime = DateTime.Now;
+            }
+
+            await _visitorService.UpdatePresence(visitor.Id, mode); // metodo da creare
+            ViewBag.Mode = mode;
+            ViewBag.Message = mode == "in" ? "Check-in registrato!" : "Check-out registrato!";
+            ViewBag.Success = true;
+
+            return View("Scan");
+        }
+
+
+
         // Dettagli visita
         [HttpGet]
         public virtual async Task<IActionResult> Details(int id)

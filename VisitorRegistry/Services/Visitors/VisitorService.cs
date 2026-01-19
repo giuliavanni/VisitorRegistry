@@ -157,5 +157,52 @@ namespace VisitorRegistry.Services.Visitors
             return await _db.Presences
                 .FirstOrDefaultAsync(p => p.Id == presenceId);
         }
+
+        public virtual async Task<bool> UpdatePresence(int visitorId, string mode)
+        {
+            // Recupera l'ultima presenza del visitatore
+            var presence = await _db.Presences
+                .Where(p => p.VisitorId == visitorId)
+                .OrderByDescending(p => p.CheckInTime)
+                .FirstOrDefaultAsync();
+
+            // Se non esiste una presenza e stiamo facendo check-in, crea una nuova presenza
+            if (presence == null && mode == "in")
+            {
+                presence = new Presence
+                {
+                    VisitorId = visitorId,
+                    CheckInTime = DateTime.Now
+                };
+                _db.Presences.Add(presence);
+            }
+            else if (presence != null)
+            {
+                if (mode == "in" && presence.CheckInTime == null)
+                {
+                    // Aggiorna check-in
+                    presence.CheckInTime = DateTime.Now;
+                }
+                else if (mode == "out" && presence.CheckOutTime == null)
+                {
+                    // Aggiorna check-out
+                    presence.CheckOutTime = DateTime.Now;
+                }
+                else
+                {
+                    // Stato già registrato, niente da fare
+                    return false;
+                }
+            }
+            else
+            {
+                // Tentativo di check-out senza check-in
+                return false;
+            }
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
     }
 }
