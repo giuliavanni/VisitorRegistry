@@ -143,5 +143,19 @@ namespace VisitorRegistry.Services.Visitors
             return await _db.Visitors
                 .FirstOrDefaultAsync(v => v.QrCode == qrCode);
         }
+
+        public virtual async Task<Presence?> GetLatestPresence(int visitorId)
+        {
+            return await _db.Presences
+                .Where(p => p.VisitorId == visitorId)
+                .OrderByDescending(p => p.CheckInTime)
+                .FirstOrDefaultAsync();
+        }
+
+        public virtual async Task<Presence?> GetPresenceById(int presenceId)
+        {
+            return await _db.Presences
+                .FirstOrDefaultAsync(p => p.Id == presenceId);
+        }
     }
 }

@@ -15,6 +15,11 @@ namespace VisitorRegistry.Services
             _db = db;
         }
 
+        public virtual async Task SaveChangesAsync()
+        {
+            await _db.SaveChangesAsync();
+        }
+
         // =====================================
         // Toggle check-in / check-out via QR
         // =====================================

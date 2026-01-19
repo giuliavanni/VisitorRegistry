@@ -13,5 +13,7 @@ namespace VisitorRegistry.Web.Features.Presence
         public string Referente { get; set; }
         public string Ditta { get; set; }
         public string QrCode { get; set; }
+        public string QrCodeImageBase64 { get; set; }
+
     }
 }

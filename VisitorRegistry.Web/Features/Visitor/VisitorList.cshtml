@@ -21,7 +21,7 @@
                 <td>@visitor.Id</td>
                 <td>@visitor.Nome</td>
                 <td>@visitor.Cognome</td>
-                <td>
+                <td class= "visit-status">
                     @if (visitor.CheckIn == default)
                     {
                         <span class="badge bg-warning">Visita programmata</span>
@@ -30,13 +30,11 @@
                     {
                         <span class="badge bg-success">Visita in corso</span>
                         <div class="mt-1">
-                            <a class="btn btn-danger btn-sm"
-                               asp-controller="Presence"
-                               asp-action="Scan"
-                               asp-route-mode="out"
-                               asp-route-qrCode="@visitor.QrCode">
+                            <button class="btn btn-danger btn-sm force-checkout-btn"
+                                    data-presence-id="@visitor.CurrentPresenceId"
+                                    @(visitor.CheckOut == null ? "" : "disabled")>
                                 Forza Check-Out
-                            </a>
+                            </button>
                         </div>
                     }
                     else
@@ -48,7 +46,7 @@
                 <td>
                     @(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "—")
                 </td>
-                <td>
+                <td class="checkout-time">
                     @if (visitor.CheckOut.HasValue)
                     {
                         @visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm")
@@ -92,7 +90,8 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="~/js/presenceModal.js"></script>
+<script src="~/js/presenceModal.js" asp-append-version="true"></script>
+
 
 
 

@@ -1,102 +1,109 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using QRCoder;
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Threading.Tasks;
-using VisitorRegistry.Services;
-using PresenceModel = VisitorRegistry.Services.Shared.Presence; // alias per la classe Presence
+using VisitorRegistry.Services.Visitors;
+using VisitorRegistry.Web.Features.Presence;
 
 namespace VisitorRegistry.Web.Features.Presence
 {
     public partial class PresenceController : Controller
     {
-        private readonly PresenceService _presenceService;
+        private readonly VisitorService _visitorService;
 
-        public PresenceController(PresenceService presenceService)
+        // Inietta VisitorService tramite DI
+        public PresenceController(VisitorService visitorService)
         {
-            _presenceService = presenceService;
+            _visitorService = visitorService;
         }
 
-        // Pagina di scan QR per check-in / check-out
-        [HttpGet]
-        public virtual IActionResult Scan(string mode, string qrCode)
-        {
-            ViewBag.Mode = mode ?? "in"; // default a check-in
-            ViewBag.QRCode = qrCode;
-            ViewBag.Success = null;
-            ViewBag.Message = null;
-            return View();
-        }
-
-        // Dettagli di una singola visita
-        [HttpGet]
+        // Dettagli visita
         [HttpGet]
         public virtual async Task<IActionResult> Details(int id)
         {
-            var presence = await _presenceService.GetByIdAsync(id);
+            // Prende i dati del visitatore
+            var visitorDto = await _visitorService.GetById(id);
+            if (visitorDto == null)
+                return NotFound();
+
+            // Prende l'ultima presenza
+            var presence = await _visitorService.GetLatestPresence(id);
+
+            // Genera QR code in Base64
+            string qrBase64 = "";
+            if (!string.IsNullOrEmpty(visitorDto.QrCode))
+            {
+                using var qrGenerator = new QRCodeGenerator();
+                using var qrData = qrGenerator.CreateQrCode(visitorDto.QrCode, QRCodeGenerator.ECCLevel.Q);
+                using var qrCode = new QRCode(qrData);
+                using var ms = new MemoryStream();
+                using var bitmap = qrCode.GetGraphic(20);
+                bitmap.Save(ms, ImageFormat.Png);
+                qrBase64 = Convert.ToBase64String(ms.ToArray());
+            }
+
+            // Popola il ViewModel
+            var viewModel = new PresenceDetailsViewModel
+            {
+                Id = visitorDto.Id,
+                Nome = visitorDto.Nome,
+                Cognome = visitorDto.Cognome,
+                DataVisita = visitorDto.DataVisita,
+                QrCode = visitorDto.QrCode,
+                QrCodeImageBase64 = qrBase64,
+                CheckInTime = presence?.CheckInTime,
+                CheckOutTime = presence?.CheckOutTime,
+                Ditta = visitorDto.Ditta ?? "-",
+                Referente = visitorDto.Referente ?? "-"
+            };
+
+            return View(viewModel);
+        }
+        
+        [HttpGet]
+        public virtual async Task<IActionResult> DetailsJson(int presenceId)
+        {
+            // Recupera la presenza CORRETTA
+            var presence = await _visitorService.GetPresenceById(presenceId);
             if (presence == null)
                 return NotFound();
 
-            var model = new PresenceDetailsViewModel
-            {
-                Nome = presence.Visitor.Nome,
-                Cognome = presence.Visitor.Cognome,
-                Ditta = presence.Visitor.Ditta ?? "—",
-                Referente = presence.Visitor.Referente ?? "—",
-                CheckInTime = presence.CheckInTime,
-                CheckOutTime = presence.CheckOutTime,
-                DataVisita = presence.CheckInTime != default(DateTime) ? presence.CheckInTime.Date : DateTime.Today,
-                QrCode = presence.Visitor.QrCode
-            };
+            // Recupera il visitatore
+            var visitorDto = await _visitorService.GetById(presence.VisitorId);
+            if (visitorDto == null)
+                return NotFound();
 
-            return Json(model);
+            // Genera QR Base64
+            string qrBase64 = null;
+            if (!string.IsNullOrEmpty(visitorDto.QrCode))
+            {
+                using var qrGenerator = new QRCodeGenerator();
+                using var qrData = qrGenerator.CreateQrCode(visitorDto.QrCode, QRCodeGenerator.ECCLevel.Q);
+                using var qrCode = new QRCode(qrData);
+                using var ms = new MemoryStream();
+                using var bitmap = qrCode.GetGraphic(20);
+                bitmap.Save(ms, ImageFormat.Png);
+                qrBase64 = Convert.ToBase64String(ms.ToArray());
+            }
+
+            return Json(new
+            {
+                nome = visitorDto.Nome,
+                cognome = visitorDto.Cognome,
+                ditta = visitorDto.Ditta,
+                referente = visitorDto.Referente,
+                dataVisita = visitorDto.DataVisita,
+                checkInTime = presence.CheckInTime,
+                checkOutTime = presence.CheckOutTime,
+                qrCode = visitorDto.QrCode,
+                qrCodeImageBase64 = qrBase64
+            });
         }
 
-        
-        // Submit QR per check-in / check-out
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<IActionResult> Scan(string qrCode, string mode)
-        {
-            ViewBag.Mode = mode ?? "in";
-
-            PresenceActionResult result;
-
-            if (mode == "in")
-            {
-                result = await _presenceService.CheckInByQrAsync(qrCode);
-            }
-            else
-            {
-                result = await _presenceService.CheckOutByQrAsync(qrCode);
-            }
-
-            // Messaggi coerenti con il tentativo dell’utente
-            switch (result)
-            {
-                case PresenceActionResult.AlreadyCheckedIn:
-                    ViewBag.Message = "Non puoi fare Check-In: sei già dentro";
-                    ViewBag.Success = false;
-                    break;
-                case PresenceActionResult.AlreadyCheckedOut:
-                    ViewBag.Message = "Non puoi fare Check-Out: sei già fuori";
-                    ViewBag.Success = false;
-                    break;
-                case PresenceActionResult.CheckedIn:
-                    ViewBag.Message = "Check-In completato";
-                    ViewBag.Success = true;
-                    break;
-                case PresenceActionResult.CheckedOut:
-                    ViewBag.Message = "Check-Out completato";
-                    ViewBag.Success = true;
-                    break;
-                default:
-                    ViewBag.Message = "QR non valido";
-                    ViewBag.Success = false;
-                    break;
-            }
-
-            return View();
-        }
     }
+
 }
+
 
