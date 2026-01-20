@@ -105,21 +105,27 @@ namespace VisitorRegistry.Web.Features.Visitor
             if (!ModelState.IsValid)
                 return BadRequest("Dati non validi");
 
-            // Recuperiamo il QR Code esistente
+            // Recupera il visitatore esistente
             var existingVisitor = await _visitorService.GetById(editedVisitor.Id);
             if (existingVisitor == null)
                 return NotFound();
 
+            // Mantiene il QR Code esistente (NON MODIFICABILE)
             editedVisitor.QrCode = existingVisitor.QrCode;
 
-            var success = await _visitorService.VisitorUpdate(editedVisitor);
+            // Recupera l'ultima presenza per aggiornarla
+            var latestPresence = await _visitorService.GetLatestPresence(editedVisitor.Id);
+
+            // Usa il metodo che aggiorna sia Visitor che Presence
+            var success = await _visitorService.VisitorUpdateWithPresence(
+                editedVisitor,
+                latestPresence?.Id
+            );
+
             if (!success)
                 return StatusCode(500, "Errore durante l'aggiornamento del visitatore");
 
             return Json(new { message = "Visitatore aggiornato con successo" });
         }
     }
-
-  
-    
 }
