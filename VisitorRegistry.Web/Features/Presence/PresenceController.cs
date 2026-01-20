@@ -124,7 +124,7 @@ namespace VisitorRegistry.Web.Features.Presence
                 return BadRequest(new { success = false });
 
             presence.CheckOutTime = DateTime.Now;
-            // TODO: salva nel DB
+            // perfarlo: salva nel DB
 
             return Json(new
             {
