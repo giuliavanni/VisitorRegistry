@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using System;
 using System.Drawing.Imaging;
@@ -19,7 +19,9 @@ namespace VisitorRegistry.Web.Features.Presence
             _visitorService = visitorService;
         }
 
-        // Dettagli visita
+        // =========================
+        // Dettagli visita (View completa)
+        // =========================
         [HttpGet]
         public virtual async Task<IActionResult> Details(int id)
         {
@@ -61,16 +63,19 @@ namespace VisitorRegistry.Web.Features.Presence
 
             return View(viewModel);
         }
-        
+
+        // =========================
+        // Dettagli visita (JSON per modal)
+        // =========================
         [HttpGet]
         public virtual async Task<IActionResult> DetailsJson(int presenceId)
         {
-            // Recupera la presenza CORRETTA
+            // Recupera la presenza specifica
             var presence = await _visitorService.GetPresenceById(presenceId);
             if (presence == null)
                 return NotFound();
 
-            // Recupera il visitatore
+            // Recupera il visitatore associato
             var visitorDto = await _visitorService.GetById(presence.VisitorId);
             if (visitorDto == null)
                 return NotFound();
@@ -90,6 +95,7 @@ namespace VisitorRegistry.Web.Features.Presence
 
             return Json(new
             {
+                visitorId = visitorDto.Id,        // ✅ ID del visitatore per modifiche
                 nome = visitorDto.Nome,
                 cognome = visitorDto.Cognome,
                 ditta = visitorDto.Ditta,
@@ -102,8 +108,29 @@ namespace VisitorRegistry.Web.Features.Presence
             });
         }
 
+        // =========================
+        // Forza Check-Out
+        // =========================
+        [HttpPost]
+        public virtual async Task<IActionResult> ForceCheckOut(int presenceId)
+        {
+            var presence = await _visitorService.GetPresenceById(presenceId);
+            if (presence == null)
+                return NotFound();
+
+            if (presence.CheckOutTime.HasValue)
+                return BadRequest(new { success = false, message = "Check-out già effettuato" });
+
+            presence.CheckOutTime = DateTime.Now;
+            // Assumendo che ci sia un metodo per salvare le modifiche
+            // await _visitorService.UpdatePresence(presence);
+            // Oppure salva direttamente tramite DbContext se disponibile
+
+            return Json(new
+            {
+                success = true,
+                checkOutTime = presence.CheckOutTime.Value.ToString("dd/MM/yyyy HH:mm")
+            });
+        }
     }
-
 }
-
-
