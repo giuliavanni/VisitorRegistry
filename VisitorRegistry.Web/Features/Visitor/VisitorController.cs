@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+#nullable enable
+
+using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using System;
 using System.IO;
@@ -10,10 +12,8 @@ namespace VisitorRegistry.Web.Features.Visitor
 {
     public partial class VisitorController : Controller
     {
-        // Campo per il service
         private readonly VisitorService _visitorService;
 
-        // Costruttore che inietta il service
         public VisitorController(VisitorService visitorService)
         {
             _visitorService = visitorService;
@@ -34,12 +34,10 @@ namespace VisitorRegistry.Web.Features.Visitor
         [HttpGet]
         public virtual async Task<IActionResult> Details(int id)
         {
-            // Recupera il visitatore
-            var visitorDto = await _visitorService.GetById(id); // VisitorDetailDTO
+            var visitorDto = await _visitorService.GetById(id);
             if (visitorDto == null)
                 return NotFound();
 
-            // Genera QR code Base64 dal codice salvato
             string qrBase64 = "";
             if (!string.IsNullOrEmpty(visitorDto.QrCode))
             {
@@ -52,10 +50,8 @@ namespace VisitorRegistry.Web.Features.Visitor
                 qrBase64 = Convert.ToBase64String(ms.ToArray());
             }
 
-            // Recupera ultima presenza (check-in/check-out)
             var presence = await _visitorService.GetLatestPresence(id);
 
-            // Popola il ViewModel
             var viewModel = new PresenceDetailsViewModel
             {
                 Id = visitorDto.Id,
@@ -72,7 +68,64 @@ namespace VisitorRegistry.Web.Features.Visitor
 
             return View(viewModel);
         }
+
+        // =========================
+        // Aggiungi nuovo visitatore (POST)
+        // =========================
+        [HttpPost]
+        public virtual async Task<IActionResult> AddVisitor([FromForm] VisitorCreateDTO newVisitor)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Dati non validi");
+
+            var newId = await _visitorService.Create(newVisitor);
+
+            var createdVisitor = await _visitorService.GetById(newId);
+            if (createdVisitor == null)
+                return StatusCode(500, "Errore durante la creazione del visitatore");
+
+            return Json(new
+            {
+                id = createdVisitor.Id,
+                nome = createdVisitor.Nome,
+                cognome = createdVisitor.Cognome,
+                checkIn = newVisitor.CheckIn?.ToString("dd/MM/yyyy HH:mm") ?? "—",
+                checkOut = newVisitor.CheckOut?.ToString("dd/MM/yyyy HH:mm") ?? "—",
+                statoVisita = newVisitor.CheckIn == null ? "Visita programmata" : "Visita in corso",
+                currentPresenceId = newId
+            });
+        }
+
+        // =========================
+        // Modifica visitatore (POST)
+        // =========================
+        [HttpPost]
+        public virtual async Task<IActionResult> EditVisitor([FromForm] VisitorEditDTO editedVisitor)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Dati non validi");
+
+            // Recupera il visitatore esistente
+            var existingVisitor = await _visitorService.GetById(editedVisitor.Id);
+            if (existingVisitor == null)
+                return NotFound();
+
+            // Mantiene il QR Code esistente (NON MODIFICABILE)
+            editedVisitor.QrCode = existingVisitor.QrCode;
+
+            // Recupera l'ultima presenza per aggiornarla
+            var latestPresence = await _visitorService.GetLatestPresence(editedVisitor.Id);
+
+            // Usa il metodo che aggiorna sia Visitor che Presence
+            var success = await _visitorService.VisitorUpdateWithPresence(
+                editedVisitor,
+                latestPresence?.Id
+            );
+
+            if (!success)
+                return StatusCode(500, "Errore durante l'aggiornamento del visitatore");
+
+            return Json(new { message = "Visitatore aggiornato con successo" });
+        }
     }
 }
-
-

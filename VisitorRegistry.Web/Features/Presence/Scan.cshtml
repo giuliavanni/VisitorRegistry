@@ -1,30 +1,111 @@
-﻿@{
-    // Recupera mode dalla ViewBag (default "in")
+@{
     var mode = (ViewBag.Mode as string) ?? "in";
     var message = ViewBag.Message as string;
     var success = ViewBag.Success as bool? ?? false;
+
+    bool isCheckIn = mode == "in";
 }
 
-<h2>@(mode == "in" ? "Check-In" : "Check-Out")</h2>
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-12 col-md-6 col-lg-5">
 
-@if (!string.IsNullOrEmpty(message))
-{
-    <div class="alert @(success ? "alert-success" : "alert-danger")">
-        @message
+            <h2 class="text-center mb-3">
+                @(isCheckIn ? "Check-In" : "Check-Out")
+            </h2>
+
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert @(success ? "alert-success" : "alert-danger") text-center">
+                    @message
+                </div>
+            }
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <div class="text-center mb-4">
+                        <i class="fas @(isCheckIn ? "fa-sign-in-alt" : "fa-sign-out-alt") fa-2x mb-2"></i>
+                        <p class="text-muted mb-0">
+                            @(isCheckIn ? "Registra il tuo ingresso" : "Registra la tua uscita")
+                        </p>
+                    </div>
+
+                    <!-- Area Scanner -->
+                    <div id="scannerArea"
+                         class="border border-2 border-dashed rounded text-center p-4 mb-4"
+                         style="cursor:pointer;">
+                        <i class="fas fa-qrcode fa-2x mb-2"></i>
+                        <div>Scansiona il QR Code</div>
+                        <small class="text-muted">
+                            Posiziona il codice QR davanti allo scanner
+                        </small>
+                    </div>
+
+                    <div class="text-center text-muted mb-3">oppure</div>
+
+                    <!-- Form -->
+                    <form asp-action="ProcessScan" method="post" id="scanForm">
+                        <input type="hidden" name="mode" value="@mode" />
+
+                        <div class="mb-3">
+                            <label for="qrCode" class="form-label">
+                                Inserisci Manualmente
+                            </label>
+                            <input type="text"
+                                   id="qrCode"
+                                   name="qrCode"
+                                   class="form-control"
+                                   placeholder="Digita il codice QR"
+                                   required />
+                        </div>
+
+                        <button type="submit"
+                                class="btn w-100 @(isCheckIn ? "btn-success" : "btn-danger")">
+                            Conferma @(isCheckIn ? "Ingresso" : "Uscita")
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <small>
+                            @(isCheckIn ? "Devi fare il check-out?" : "Devi fare il check-in?")
+                        </small><br />
+                        <a href="@Url.Action("Scan", "Presence", new { mode = isCheckIn ? "out" : "in" })">
+                            Passa a @(isCheckIn ? "Check-Out" : "Check-In")
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
     </div>
-}
+</div>
 
-<form asp-action="ProcessScan" method="post">
-    
-    <input type="hidden" name="mode" value="@mode" />
+<script>
+    const scannerArea = document.getElementById('scannerArea');
+    const qrInput = document.getElementById('qrCode');
 
-    <div class="form-group">
-        <label for="qrCode">Inserisci QR code:</label>
-        <input type="text" id="qrCode" name="qrCode" class="form-control" />
-    </div>
+    scannerArea.addEventListener('click', () => {
+        qrInput.focus();
+    });
 
-    <button type="submit" class="btn @(mode == "in" ? "btn-success" : "btn-danger") mt-2">
-        Invia
-    </button>
-</form>
+    @if (!string.IsNullOrEmpty(message) && !success)
+    {
+            <text>
+            const form = document.getElementById('scanForm');
+            form.classList.add('shake');
+            setTimeout(() => form.classList.remove('shake'), 500);
+            </text>
+    }
 
+    @if (success)
+    {
+            <text>
+            setTimeout(() => {
+                qrInput.value = '';
+                qrInput.focus();
+            }, 2000);
+            </text>
+    }
+</script>

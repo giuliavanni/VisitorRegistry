@@ -1,8 +1,28 @@
-﻿@model IEnumerable<VisitorRegistry.Services.Visitors.VisitorListDTO>
+@model IEnumerable<VisitorRegistry.Services.Visitors.VisitorListDTO>
+
 
 <h2>Elenco Visitatori</h2>
 
-<table class="table">
+<!-- Toolbar: ricerca, filtro data, aggiungi, stampa -->
+<div class="d-flex mb-3 align-items-center gap-2">
+    <!-- Ricerca per nome -->
+    <input type="text" id="searchName" class="form-control form-control-sm" placeholder="Cerca per nome...">
+
+    <!-- Filtro per data -->
+    <input type="date" id="filterDate" class="form-control form-control-sm">
+
+    <!-- Aggiungi nuovo visitatore -->
+    <button id="addVisitorBtn" type="button" class="btn btn-success btn-sm">
+        ➕ Aggiungi
+    </button>
+
+    <!-- Stampa -->
+    <button id="printBtn" type="button" class="btn btn-secondary btn-sm">
+        🖨️ Stampa
+    </button>
+</div>
+
+<table class="table" id="visitorTable">
     <thead>
         <tr>
             <th>Id</th>
@@ -21,7 +41,7 @@
                 <td>@visitor.Id</td>
                 <td>@visitor.Nome</td>
                 <td>@visitor.Cognome</td>
-                <td class= "visit-status">
+                <td class="visit-status">
                     @if (visitor.CheckIn == default)
                     {
                         <span class="badge bg-warning">Visita programmata</span>
@@ -42,39 +62,36 @@
                         <span class="badge bg-secondary">Visita terminata</span>
                     }
                 </td>
-
-                <td>
-                    @(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "—")
-                </td>
-                <td class="checkout-time">
-                    @if (visitor.CheckOut.HasValue)
-                    {
-                        @visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm")
-                    }
-                    else
-                    {
-                        <span class="text-muted">—</span>
-                    }
-                </td>
+                <td>@(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                <td>@(visitor.CheckOut.HasValue? visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
                 <td>
                     <button class="btn btn-info btn-sm me-1"
                             data-bs-toggle="modal"
                             data-bs-target="#detailsModal"
-                            data-presence-id="@visitor.CurrentPresenceId">
+                            data-presence-id="@visitor.Id">
                         Dettagli visita
                     </button>
-                    <a class="btn btn-warning btn-sm"
-                       asp-action="Edit"
-                       asp-controller="Visitor"
-                       asp-route-id="@visitor.Id">
-                        Modifica
-                    </a>
                 </td>
-
             </tr>
         }
+
+        <!-- Riga aggiunta nuovo visitatore (inizialmente nascosta) -->
+        <tr id="newVisitorRowTable" style="display:none;">
+            <td>—</td>
+            <td><input type="text" id="newNome" class="form-control form-control-sm" placeholder="Nome"></td>
+            <td><input type="text" id="newCognome" class="form-control form-control-sm" placeholder="Cognome"></td>
+            <td>—</td>
+            <td><input type="datetime-local" id="newCheckIn" class="form-control form-control-sm"></td>
+            <td><input type="datetime-local" id="newCheckOut" class="form-control form-control-sm"></td>
+            <td class="d-flex gap-1">
+                <button type="button" id="saveNewVisitorBtn" class="btn btn-primary btn-sm">💾 Salva</button>
+                <button type="button" id="cancelNewVisitorBtn" class="btn btn-danger btn-sm">❌</button>
+            </td>
+        </tr>
     </tbody>
 </table>
+
+<!-- Modal Dettagli -->
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -89,9 +106,7 @@
     </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="~/js/presenceModal.js" asp-append-version="true"></script>
-
-
-
-
+<script src="~/js/visitorTable.js" asp-append-version="true"></script>

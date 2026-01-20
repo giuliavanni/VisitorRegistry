@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using System;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using VisitorRegistry.Services.Visitors;
-using VisitorRegistry.Web.Features.Presence;
 
 namespace VisitorRegistry.Web.Features.Presence
 {
@@ -13,77 +12,40 @@ namespace VisitorRegistry.Web.Features.Presence
     {
         private readonly VisitorService _visitorService;
 
-        // Inietta VisitorService tramite DI
         public PresenceController(VisitorService visitorService)
         {
             _visitorService = visitorService;
         }
 
+        
         [HttpGet]
-        public virtual IActionResult Scan(string mode)
+        public virtual IActionResult Scan(string mode = "in")
         {
-            // Se il parametro mode non è specificato, di default "in"
-            ViewBag.Mode = mode ?? "in";
+            ViewBag.Mode = mode;
             return View();
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<IActionResult> ProcessScan(string qrCode, string mode)
+        public virtual IActionResult ProcessScan(string qrCode, string mode)
         {
-            if (string.IsNullOrEmpty(qrCode))
-            {
-                ViewBag.Mode = mode;
-                ViewBag.Message = "QR code non valido!";
-                ViewBag.Success = false;
-                return View("Scan");
-            }
-
-            // Recupera visitatore dal QR
-            var visitor = await _visitorService.GetByQrCode(qrCode);
-            if (visitor == null)
-            {
-                ViewBag.Mode = mode;
-                ViewBag.Message = "Visitator non trovato!";
-                ViewBag.Success = false;
-                return View("Scan");
-            }
-
-            // Esegui check-in o check-out
-            if (mode == "in")
-            {
-                // Logica check-in
-                visitor.CheckInTime = DateTime.Now;
-            }
-            else
-            {
-                // Logica check-out
-                visitor.CheckOutTime = DateTime.Now;
-            }
-
-            await _visitorService.UpdatePresence(visitor.Id, mode); // metodo da creare
             ViewBag.Mode = mode;
-            ViewBag.Message = mode == "in" ? "Check-in registrato!" : "Check-out registrato!";
             ViewBag.Success = true;
+            ViewBag.Message = mode == "in"
+                ? "Check-in effettuato con successo"
+                : "Check-out effettuato con successo";
 
             return View("Scan");
         }
 
-
-
-        // Dettagli visita
         [HttpGet]
         public virtual async Task<IActionResult> Details(int id)
         {
-            // Prende i dati del visitatore
             var visitorDto = await _visitorService.GetById(id);
             if (visitorDto == null)
                 return NotFound();
 
-            // Prende l'ultima presenza
             var presence = await _visitorService.GetLatestPresence(id);
 
-            // Genera QR code in Base64
             string qrBase64 = "";
             if (!string.IsNullOrEmpty(visitorDto.QrCode))
             {
@@ -96,7 +58,6 @@ namespace VisitorRegistry.Web.Features.Presence
                 qrBase64 = Convert.ToBase64String(ms.ToArray());
             }
 
-            // Popola il ViewModel
             var viewModel = new PresenceDetailsViewModel
             {
                 Id = visitorDto.Id,
@@ -113,21 +74,18 @@ namespace VisitorRegistry.Web.Features.Presence
 
             return View(viewModel);
         }
-        
+
         [HttpGet]
         public virtual async Task<IActionResult> DetailsJson(int presenceId)
         {
-            // Recupera la presenza CORRETTA
             var presence = await _visitorService.GetPresenceById(presenceId);
             if (presence == null)
                 return NotFound();
 
-            // Recupera il visitatore
             var visitorDto = await _visitorService.GetById(presence.VisitorId);
             if (visitorDto == null)
                 return NotFound();
 
-            // Genera QR Base64
             string qrBase64 = null;
             if (!string.IsNullOrEmpty(visitorDto.QrCode))
             {
@@ -142,6 +100,7 @@ namespace VisitorRegistry.Web.Features.Presence
 
             return Json(new
             {
+                visitorId = visitorDto.Id,
                 nome = visitorDto.Nome,
                 cognome = visitorDto.Cognome,
                 ditta = visitorDto.Ditta,
@@ -154,8 +113,24 @@ namespace VisitorRegistry.Web.Features.Presence
             });
         }
 
+        [HttpPost]
+        public virtual async Task<IActionResult> ForceCheckOut(int presenceId)
+        {
+            var presence = await _visitorService.GetPresenceById(presenceId);
+            if (presence == null)
+                return NotFound();
+
+            if (presence.CheckOutTime.HasValue)
+                return BadRequest(new { success = false });
+
+            presence.CheckOutTime = DateTime.Now;
+            // perfarlo: salva nel DB
+
+            return Json(new
+            {
+                success = true,
+                checkOutTime = presence.CheckOutTime.Value.ToString("dd/MM/yyyy HH:mm")
+            });
+        }
     }
-
 }
-
-

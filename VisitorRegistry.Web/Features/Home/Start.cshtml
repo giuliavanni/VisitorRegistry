@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Registro Visitatori";
 }
 
@@ -21,6 +21,11 @@
         <a class="btn btn-success btn-lg"
            href="@Url.Action("Scan", "Presence", new { mode = "in"})">
             ✅ Devo entrare
+        </a>
+        <!-- Admin -->
+        <a class="btn btn-dark btn-lg"
+           href="@Url.Action("Login", "Login", new { area = "" })">
+            🔐 Area Admin
         </a>
 
         <!-- Check-out -->
