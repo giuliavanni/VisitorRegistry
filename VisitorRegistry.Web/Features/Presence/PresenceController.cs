@@ -5,7 +5,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using VisitorRegistry.Services.Visitors;
-using VisitorRegistry.Web.Features.Presence;
 
 namespace VisitorRegistry.Web.Features.Presence
 {
@@ -13,27 +12,40 @@ namespace VisitorRegistry.Web.Features.Presence
     {
         private readonly VisitorService _visitorService;
 
-        // Inietta VisitorService tramite DI
         public PresenceController(VisitorService visitorService)
         {
             _visitorService = visitorService;
         }
 
-        // =========================
-        // Dettagli visita (View completa)
-        // =========================
+        
+        [HttpGet]
+        public virtual IActionResult Scan(string mode = "in")
+        {
+            ViewBag.Mode = mode;
+            return View();
+        }
+
+        [HttpPost]
+        public virtual IActionResult ProcessScan(string qrCode, string mode)
+        {
+            ViewBag.Mode = mode;
+            ViewBag.Success = true;
+            ViewBag.Message = mode == "in"
+                ? "Check-in effettuato con successo"
+                : "Check-out effettuato con successo";
+
+            return View("Scan");
+        }
+
         [HttpGet]
         public virtual async Task<IActionResult> Details(int id)
         {
-            // Prende i dati del visitatore
             var visitorDto = await _visitorService.GetById(id);
             if (visitorDto == null)
                 return NotFound();
 
-            // Prende l'ultima presenza
             var presence = await _visitorService.GetLatestPresence(id);
 
-            // Genera QR code in Base64
             string qrBase64 = "";
             if (!string.IsNullOrEmpty(visitorDto.QrCode))
             {
@@ -46,7 +58,6 @@ namespace VisitorRegistry.Web.Features.Presence
                 qrBase64 = Convert.ToBase64String(ms.ToArray());
             }
 
-            // Popola il ViewModel
             var viewModel = new PresenceDetailsViewModel
             {
                 Id = visitorDto.Id,
@@ -64,23 +75,17 @@ namespace VisitorRegistry.Web.Features.Presence
             return View(viewModel);
         }
 
-        // =========================
-        // Dettagli visita (JSON per modal)
-        // =========================
         [HttpGet]
         public virtual async Task<IActionResult> DetailsJson(int presenceId)
         {
-            // Recupera la presenza specifica
             var presence = await _visitorService.GetPresenceById(presenceId);
             if (presence == null)
                 return NotFound();
 
-            // Recupera il visitatore associato
             var visitorDto = await _visitorService.GetById(presence.VisitorId);
             if (visitorDto == null)
                 return NotFound();
 
-            // Genera QR Base64
             string qrBase64 = null;
             if (!string.IsNullOrEmpty(visitorDto.QrCode))
             {
@@ -95,7 +100,7 @@ namespace VisitorRegistry.Web.Features.Presence
 
             return Json(new
             {
-                visitorId = visitorDto.Id,        // ✅ ID del visitatore per modifiche
+                visitorId = visitorDto.Id,
                 nome = visitorDto.Nome,
                 cognome = visitorDto.Cognome,
                 ditta = visitorDto.Ditta,
@@ -108,9 +113,6 @@ namespace VisitorRegistry.Web.Features.Presence
             });
         }
 
-        // =========================
-        // Forza Check-Out
-        // =========================
         [HttpPost]
         public virtual async Task<IActionResult> ForceCheckOut(int presenceId)
         {
@@ -119,12 +121,10 @@ namespace VisitorRegistry.Web.Features.Presence
                 return NotFound();
 
             if (presence.CheckOutTime.HasValue)
-                return BadRequest(new { success = false, message = "Check-out già effettuato" });
+                return BadRequest(new { success = false });
 
             presence.CheckOutTime = DateTime.Now;
-            // Assumendo che ci sia un metodo per salvare le modifiche
-            // await _visitorService.UpdatePresence(presence);
-            // Oppure salva direttamente tramite DbContext se disponibile
+            // TODO: salva nel DB
 
             return Json(new
             {
