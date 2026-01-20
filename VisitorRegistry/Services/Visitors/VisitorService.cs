@@ -88,6 +88,7 @@ namespace VisitorRegistry.Services.Visitors
         public async Task<VisitorDetailDTO?> GetById(int id)
         {
             return await _db.Visitors
+                .Include(v => v.Presences)
                 .Where(v => v.Id == id)
                 .Select(v => new VisitorDetailDTO
                 {
@@ -95,7 +96,17 @@ namespace VisitorRegistry.Services.Visitors
                     Nome = v.Nome,
                     Cognome = v.Cognome,
                     DataVisita = v.DataVisita,
-                    QrCode = v.QrCode
+                    QrCode = v.QrCode,
+                    Ditta = v.Ditta,
+                    Referente = v.Referente,
+                    CheckInTime = v.Presences
+                        .OrderByDescending(p => p.CheckInTime)
+                        .Select(p => (DateTime?)p.CheckInTime)
+                        .FirstOrDefault(),
+                    CheckOutTime = v.Presences
+                        .OrderByDescending(p => p.CheckInTime)
+                        .Select(p => p.CheckOutTime)
+                        .FirstOrDefault()
                 })
                 .FirstOrDefaultAsync();
         }
@@ -123,6 +134,52 @@ namespace VisitorRegistry.Services.Visitors
         }
 
         // =========================
+        // UPDATE CON PRESENCE
+        // =========================
+        public async Task<bool> VisitorUpdateWithPresence(VisitorEditDTO dto, int? presenceId)
+        {
+            var visitor = await _db.Visitors
+                .Include(v => v.Presences)
+                .FirstOrDefaultAsync(v => v.Id == dto.Id);
+
+            if (visitor == null)
+                return false;
+
+            // Aggiorna dati visitatore
+            visitor.Nome = dto.Nome;
+            visitor.Cognome = dto.Cognome;
+            visitor.Ditta = dto.Ditta;
+            visitor.Referente = dto.Referente;
+            visitor.DataVisita = dto.DataVisita;
+            // QrCode NON si modifica
+
+            // Aggiorna la presenza se esiste
+            if (presenceId.HasValue)
+            {
+                var presence = await _db.Presences.FindAsync(presenceId.Value);
+                if (presence != null)
+                {
+                    if (dto.CheckInTime.HasValue)
+                        presence.CheckInTime = dto.CheckInTime.Value;
+
+                    presence.CheckOutTime = dto.CheckOutTime;
+                }
+            }
+            else if (dto.CheckInTime.HasValue)
+            {
+                // Crea nuova presenza se non esiste
+                visitor.Presences.Add(new Presence
+                {
+                    CheckInTime = dto.CheckInTime.Value,
+                    CheckOutTime = dto.CheckOutTime
+                });
+            }
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        // =========================
         // DELETE
         // =========================
         public async Task<bool> Delete(int id)
@@ -142,6 +199,7 @@ namespace VisitorRegistry.Services.Visitors
         public async Task<VisitorDetailDTO?> GetByQrCode(string qr)
         {
             return await _db.Visitors
+                .Include(v => v.Presences)
                 .Where(v => v.QrCode == qr)
                 .Select(v => new VisitorDetailDTO
                 {
@@ -149,7 +207,17 @@ namespace VisitorRegistry.Services.Visitors
                     Nome = v.Nome,
                     Cognome = v.Cognome,
                     DataVisita = v.DataVisita,
-                    QrCode = v.QrCode
+                    QrCode = v.QrCode,
+                    Ditta = v.Ditta,
+                    Referente = v.Referente,
+                    CheckInTime = v.Presences
+                        .OrderByDescending(p => p.CheckInTime)
+                        .Select(p => (DateTime?)p.CheckInTime)
+                        .FirstOrDefault(),
+                    CheckOutTime = v.Presences
+                        .OrderByDescending(p => p.CheckInTime)
+                        .Select(p => p.CheckOutTime)
+                        .FirstOrDefault()
                 })
                 .FirstOrDefaultAsync();
         }
