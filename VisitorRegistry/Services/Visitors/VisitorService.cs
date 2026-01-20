@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,9 +25,21 @@ namespace VisitorRegistry.Services.Visitors
             {
                 Nome = dto.Nome,
                 Cognome = dto.Cognome,
-                DataVisita = dto.DataVisita,
+                DataVisita = dto.DataVisita ?? DateTime.Now,
                 QrCode = dto.QrCode
             };
+
+            if (dto.CheckIn.HasValue || dto.CheckOut.HasValue)
+            {
+                visitor.Presences = new List<Presence>
+                {
+                    new Presence
+                    {
+                        CheckInTime = dto.CheckIn ?? DateTime.Now,
+                        CheckOutTime = dto.CheckOut
+                    }
+                };
+            }
 
             _db.Visitors.Add(visitor);
             await _db.SaveChangesAsync();
@@ -48,27 +60,24 @@ namespace VisitorRegistry.Services.Visitors
                     Id = v.Id,
                     Nome = v.Nome,
                     Cognome = v.Cognome,
-
                     CheckIn = v.Presences
                         .OrderByDescending(p => p.CheckInTime)
                         .Select(p => (DateTime?)p.CheckInTime)
                         .FirstOrDefault(),
-
                     CheckOut = v.Presences
                         .OrderByDescending(p => p.CheckInTime)
                         .Select(p => p.CheckOutTime)
                         .FirstOrDefault(),
-
-                    StatoVisita =
-                        v.Presences.Any() == false
-                            ? "Visita programmata"
-                            : v.Presences
-                                .OrderByDescending(p => p.CheckInTime)
-                                .Select(p => p.CheckOutTime == null ? "Dentro" : "Uscito")
-                                .FirstOrDefault(),
-                    CurrentPresenceId = v.Presences.OrderByDescending(p => p.CheckInTime)
-                                           .Select(p => (int?)p.Id)
-                                           .FirstOrDefault()
+                    StatoVisita = !v.Presences.Any()
+                        ? "Visita programmata"
+                        : v.Presences
+                            .OrderByDescending(p => p.CheckInTime)
+                            .Select(p => p.CheckOutTime == null ? "Dentro" : "Uscito")
+                            .FirstOrDefault(),
+                    CurrentPresenceId = v.Presences
+                        .OrderByDescending(p => p.CheckInTime)
+                        .Select(p => (int?)p.Id)
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
         }
@@ -94,16 +103,20 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         // UPDATE
         // =========================
-        public async Task<bool> Update(int id, VisitorUpdateDTO dto)
+        public async Task<bool> VisitorUpdate(VisitorEditDTO dto)
         {
-            var visitor = await _db.Visitors.FindAsync(id);
+            var visitor = await _db.Visitors.FindAsync(dto.Id);
             if (visitor == null)
                 return false;
 
             visitor.Nome = dto.Nome;
             visitor.Cognome = dto.Cognome;
+            visitor.Ditta = dto.Ditta;
+            visitor.Referente = dto.Referente;
             visitor.DataVisita = dto.DataVisita;
-            visitor.QrCode = dto.QrCode;
+
+            // Manteniamo lo stesso QR Code
+            // visitor.QrCode non si modifica
 
             await _db.SaveChangesAsync();
             return true;
@@ -123,7 +136,10 @@ namespace VisitorRegistry.Services.Visitors
             return true;
         }
 
-        public virtual async Task<VisitorDetailDTO?> GetByQrCode(string qr)
+        // =========================
+        // GET BY QR CODE
+        // =========================
+        public async Task<VisitorDetailDTO?> GetByQrCode(string qr)
         {
             return await _db.Visitors
                 .Where(v => v.QrCode == qr)
@@ -138,13 +154,16 @@ namespace VisitorRegistry.Services.Visitors
                 .FirstOrDefaultAsync();
         }
 
-        public virtual async Task<Visitor?> GetByQrCodeAsync(string qrCode)
+        public async Task<Visitor?> GetByQrCodeAsync(string qrCode)
         {
             return await _db.Visitors
                 .FirstOrDefaultAsync(v => v.QrCode == qrCode);
         }
 
-        public virtual async Task<Presence?> GetLatestPresence(int visitorId)
+        // =========================
+        // PRESENCE
+        // =========================
+        public async Task<Presence?> GetLatestPresence(int visitorId)
         {
             return await _db.Presences
                 .Where(p => p.VisitorId == visitorId)
@@ -152,7 +171,7 @@ namespace VisitorRegistry.Services.Visitors
                 .FirstOrDefaultAsync();
         }
 
-        public virtual async Task<Presence?> GetPresenceById(int presenceId)
+        public async Task<Presence?> GetPresenceById(int presenceId)
         {
             return await _db.Presences
                 .FirstOrDefaultAsync(p => p.Id == presenceId);
