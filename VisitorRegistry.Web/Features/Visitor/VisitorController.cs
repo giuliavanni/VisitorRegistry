@@ -68,6 +68,16 @@ namespace VisitorRegistry.Web.Features.Visitor
 
             return View(viewModel);
         }
+        [HttpPost]
+        public virtual async Task<IActionResult> CancelVisitor(int id)
+        {
+            var success = await _visitorService.Delete(id);
+            if (!success)
+                return NotFound();
+            return Ok();
+        }
+
+
 
         // =========================
         // Aggiungi nuovo visitatore (POST)
@@ -86,6 +96,7 @@ namespace VisitorRegistry.Web.Features.Visitor
 
             return Json(new
             {
+
                 id = createdVisitor.Id,
                 nome = createdVisitor.Nome,
                 cognome = createdVisitor.Cognome,
@@ -113,14 +124,15 @@ namespace VisitorRegistry.Web.Features.Visitor
             // Mantiene il QR Code esistente (NON MODIFICABILE)
             editedVisitor.QrCode = existingVisitor.QrCode;
 
-            // Recupera l'ultima presenza per aggiornarla
-            var latestPresence = await _visitorService.GetLatestPresence(editedVisitor.Id);
+            var presence = await _visitorService.GetPresenceById(editedVisitor.PresenceId.Value);
+
 
             // Usa il metodo che aggiorna sia Visitor che Presence
             var success = await _visitorService.VisitorUpdateWithPresence(
-                editedVisitor,
-                latestPresence?.Id
+              editedVisitor,
+              editedVisitor.PresenceId
             );
+
 
             if (!success)
                 return StatusCode(500, "Errore durante l'aggiornamento del visitatore");
