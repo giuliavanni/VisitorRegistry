@@ -2,11 +2,17 @@
 
 <h1 class="text-center mb-4">Nuovo Visitatore</h1>
 
-<div class="container">
+<form asp-controller="Home"
+      asp-action="Register"
+      method="post"
+      class="container">
+
+    @Html.AntiForgeryToken()
+
     <div class="row justify-content-center">
         <div class="col-12 col-md-6 col-lg-4">
 
-            <form asp-action="Index" method="post" class="card p-4 shadow-sm">
+            <div class="card p-4 shadow-sm">
 
                 <div class="mb-3">
                     <label asp-for="Nome" class="form-label"></label>
@@ -20,15 +26,27 @@
                     <span asp-validation-for="Cognome" class="text-danger"></span>
                 </div>
 
+                <div class="mb-3">
+                    <label asp-for="Ditta" class="form-label"></label>
+                    <input asp-for="Ditta" class="form-control" />
+                    <span asp-validation-for="Ditta" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Referente" class="form-label"></label>
+                    <input asp-for="Referente" class="form-control" />
+                    <span asp-validation-for="Referente" class="text-danger"></span>
+                </div>
+
                 <button type="submit" class="btn btn-primary w-100">
                     Salva Visitatore
                 </button>
 
-            </form>
+            </div>
 
         </div>
     </div>
-</div>
+</form>
 
 <div style="position: fixed; bottom: 20px; right: 20px;">
     <a asp-controller="Login"
@@ -43,3 +61,4 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+

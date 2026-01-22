@@ -9,5 +9,7 @@ namespace VisitorRegistry.Web.Features.Home
 
         [Required(ErrorMessage = "Cognome obbligatorio")]
         public string Cognome { get; set; }
+        public string Ditta { get; set; }
+        public string Referente { get; set; }
     }
 }

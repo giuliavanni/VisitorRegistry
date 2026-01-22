@@ -2,34 +2,48 @@
     ViewBag.Title = "Registrazione completata";
 }
 
-<h2>Registrazione completata</h2>
+<div class="container py-5 text-center">
 
-<p>Il visitatore è stato registrato correttamente.</p>
+    <h1 class="display-4 mb-4">✅ Registrazione completata!</h1>
+    <p class="lead mb-5">Il visitatore è stato registrato correttamente.</p>
 
-<div class="qr-code-container text-center">
-    <p>QR code generato:</p>
-    <img src="data:image/png;base64,@ViewBag.QrCodeImage" alt="QR Code" />
-</div>
+    <div class="qr-code-container mb-4">
+        <p class="mb-2">Mostra questo QR code per il check-in/check-out:</p>
+        <img src="data:image/png;base64,@ViewBag.QrCodeImage" alt="QR Code" class="qr-code-img rounded shadow-sm" />
+        <p class="mt-2 small text-muted">Contenuto QR: <strong>@ViewBag.QrContent</strong></p>
+    </div>
 
-<div class="mt-3 text-center">
-    <p>
-        Contenuto QR: <strong>@ViewBag.QrContent</strong>
-    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <!-- Bottone Check-Out -->
+        <a href="@Url.Action("Scan", "Presence")" class="btn btn-warning btn-lg px-4">
+            Effettua Check-Out
+        </a>
 
-    <!-- Bottone per fare Check-Out -->
-    <a href="@Url.Action("Scan", "Presence")" class="btn btn-warning">
-        Effettua Check-Out
-    </a>
+        <!-- Bottone nuovo visitatore -->
+        <a href="@Url.Action("Home", "Home")" class="btn btn-primary btn-lg px-4">
+            Nuovo visitatore
+        </a>
+    </div>
 
-    <!-- Bottone per tornare alla Home / Nuovo visitatore -->
-    <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
-        Nuovo visitatore
-    </a>
 </div>
 
 <style>
-    .qr-code-container img {
-        width: 200px;
-        height: 200px;
+    .qr-code-container img.qr-code-img {
+        width: 220px;
+        height: 220px;
+        transition: transform 0.2s;
+    }
+
+        .qr-code-container img.qr-code-img:hover {
+            transform: scale(1.05);
+        }
+
+    
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .btn-lg {
+        min-width: 160px;
     }
 </style>

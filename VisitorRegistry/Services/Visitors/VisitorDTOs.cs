@@ -6,6 +6,8 @@ namespace VisitorRegistry.Services.Visitors
     {
         public string Nome { get; set; } = "";
         public string Cognome { get; set; } = "";
+        public string Ditta { get; set; } = "";
+        public string Referente { get; set; } = "";
         public DateTime? DataVisita { get; set; } = DateTime.Now;
         public string? QrCode { get; set; }
         public DateTime? CheckIn { get; set; }
@@ -16,6 +18,8 @@ namespace VisitorRegistry.Services.Visitors
     {
         public string Nome { get; set; } = "";
         public string Cognome { get; set; } = "";
+        public string Ditta { get; set; } = "";
+        public string Referente { get; set; } = "";
         public DateTime? DataVisita { get; set; }
         public string? QrCode { get; set; }
     }
