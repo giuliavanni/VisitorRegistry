@@ -10,12 +10,27 @@ $(document).ready(function () {
 
     // Filtra per data check-in
     $('#filterDate').on('change', function () {
-        var selectedDate = $(this).val();
-        $("#visitorTable tbody tr").not('#newVisitorRowTable').filter(function () {
-            var checkIn = $(this).find('td:eq(4)').text();
-            $(this).toggle(checkIn.startsWith(selectedDate));
+        var selectedDate = $(this).val(); // yyyy-MM-dd
+
+        $("#visitorTable tbody tr").not('#newVisitorRowTable').each(function () {
+            var checkInText = $(this).find('td:eq(4)').text().trim();
+
+            if (checkInText === '—' || selectedDate === '') {
+                $(this).show();
+                return;
+            }
+
+            // checkInText: dd/MM/yyyy HH:mm
+            var datePart = checkInText.split(' ')[0]; // dd/MM/yyyy
+            var parts = datePart.split('/');
+
+            // cambiamento a yyyy-MM-dd
+            var formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+
+            $(this).toggle(formattedDate === selectedDate);
         });
     });
+
 
     // Mostra/Nasconde riga aggiunta nuovo visitatore
     $('#addVisitorBtn').click(function () {
