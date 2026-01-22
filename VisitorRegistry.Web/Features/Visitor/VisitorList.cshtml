@@ -64,14 +64,21 @@
                 </td>
                 <td>@(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
                 <td>@(visitor.CheckOut.HasValue? visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
-                <td>
-                    <button class="btn btn-info btn-sm me-1"
+                <td class="d-flex gap-1">
+                    <button class="btn btn-info btn-sm"
                             data-bs-toggle="modal"
                             data-bs-target="#detailsModal"
-                            data-presence-id="@visitor.Id">
+                            data-presence-id="@visitor.CurrentPresenceId">
                         Dettagli visita
                     </button>
+
+                    <button class="btn btn-danger btn-sm delete-visitor-btn"
+                            data-visitor-id="@visitor.Id">
+                        🗑️ Elimina
+                    </button>
                 </td>
+                @Html.AntiForgeryToken()
+
             </tr>
         }
 
