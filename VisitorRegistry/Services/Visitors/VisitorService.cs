@@ -1,3 +1,5 @@
+#nullable enable
+
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -126,9 +128,6 @@ namespace VisitorRegistry.Services.Visitors
             visitor.Referente = dto.Referente;
             visitor.DataVisita = dto.DataVisita;
 
-            // Manteniamo lo stesso QR Code
-            // visitor.QrCode non si modifica
-
             await _db.SaveChangesAsync();
             return true;
         }
@@ -145,15 +144,12 @@ namespace VisitorRegistry.Services.Visitors
             if (visitor == null)
                 return false;
 
-            // Aggiorna dati visitatore
             visitor.Nome = dto.Nome;
             visitor.Cognome = dto.Cognome;
             visitor.Ditta = dto.Ditta;
             visitor.Referente = dto.Referente;
             visitor.DataVisita = dto.DataVisita;
-            // QrCode NON si modifica
 
-            // Aggiorna la presenza se esiste
             if (presenceId.HasValue)
             {
                 var presence = await _db.Presences.FindAsync(presenceId.Value);
@@ -167,7 +163,6 @@ namespace VisitorRegistry.Services.Visitors
             }
             else if (dto.CheckInTime.HasValue)
             {
-                // Crea nuova presenza se non esiste
                 visitor.Presences.Add(new Presence
                 {
                     CheckInTime = dto.CheckInTime.Value,
@@ -245,15 +240,13 @@ namespace VisitorRegistry.Services.Visitors
                 .FirstOrDefaultAsync(p => p.Id == presenceId);
         }
 
-        public virtual async Task<bool> UpdatePresence(int visitorId, string mode)
+        public async Task<bool> UpdatePresence(int visitorId, string mode)
         {
-            // Recupera l'ultima presenza del visitatore
             var presence = await _db.Presences
                 .Where(p => p.VisitorId == visitorId)
                 .OrderByDescending(p => p.CheckInTime)
                 .FirstOrDefaultAsync();
-
-            // Se non esiste una presenza e stiamo facendo check-in, crea una nuova presenza
+            // Se non esiste una presenza e stiamo facendo check-in, crea una nuova presenza 
             if (presence == null && mode == "in")
             {
                 presence = new Presence
@@ -265,31 +258,25 @@ namespace VisitorRegistry.Services.Visitors
             }
             else if (presence != null)
             {
-                if (mode == "in" && presence.CheckInTime == null)
+                if (mode == "out" && presence.CheckOutTime == null)
                 {
-                    // Aggiorna check-in
-                    presence.CheckInTime = DateTime.Now;
-                }
-                else if (mode == "out" && presence.CheckOutTime == null)
-                {
-                    // Aggiorna check-out
+                    //Aggiorna check-out
                     presence.CheckOutTime = DateTime.Now;
                 }
                 else
                 {
-                    // Stato già registrato, niente da fare
+                    //Stato già registrato, niente da fare
                     return false;
                 }
             }
             else
             {
-                // Tentativo di check-out senza check-in
+                //Tentativo di check-out senza check-in
                 return false;
             }
 
             await _db.SaveChangesAsync();
             return true;
         }
-
     }
 }
