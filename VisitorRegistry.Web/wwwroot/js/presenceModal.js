@@ -1,6 +1,8 @@
 $(document).ready(function () {
     let currentVisitorId = null;
+    let currentPresenceId = null;
     let isEditMode = false;
+
 
     $('#detailsModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
@@ -16,9 +18,11 @@ $(document).ready(function () {
 
     function loadVisitorDetails(presenceId, modal) {
         $.getJSON('/Presence/DetailsJson', { presenceId: presenceId }, function (data) {
-            currentVisitorId = data.visitorId; // Usa visitorId dalla risposta
+            currentVisitorId = data.visitorId;
+            currentPresenceId = data.presenceId;
             renderModalContent(data, false);
         });
+
     }
 
     function renderModalContent(data, editMode) {
@@ -111,25 +115,28 @@ $(document).ready(function () {
     }
 
     // Passa alla modalità modifica
-    $(document).on('click', '#editVisitorBtn', function () {
+    $(document).on('click', '#editVisitorBtn', function (){
         isEditMode = true;
-        $.getJSON('/Presence/DetailsJson', { presenceId: currentVisitorId }, function (data) {
+        $.getJSON('/Presence/DetailsJson', { presenceId: currentPresenceId }, function (data){
             renderModalContent(data, true);
         });
     });
 
+
     // Annulla modifica
     $(document).on('click', '#cancelEditBtn', function () {
         isEditMode = false;
-        $.getJSON('/Presence/DetailsJson', { presenceId: currentVisitorId }, function (data) {
+        $.getJSON('/Presence/DetailsJson', { presenceId: currentPresenceId }, function (data) {
             renderModalContent(data, false);
         });
+
     });
 
     // Salva modifiche
     $(document).on('click', '#saveVisitorBtn', function () {
         const editedVisitor = {
             Id: currentVisitorId,
+            PresenceId: currentPresenceId,
             Nome: $('#editNome').val(),
             Cognome: $('#editCognome').val(),
             Ditta: $('#editDitta').val(),
@@ -142,17 +149,19 @@ $(document).ready(function () {
         $.ajax({
             url: '/Visitor/EditVisitor',
             type: 'POST',
-            data: editedVisitor,
+            data: {
+                ...editedVisitor, 
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
             success: function (response) {
                 alert('Visitatore aggiornato con successo!');
-
-                // Ricarica la pagina per aggiornare tutto
                 location.reload();
             },
             error: function (xhr) {
                 alert('Errore durante l\'aggiornamento: ' + xhr.responseText);
             }
         });
+
     });
 });
 
