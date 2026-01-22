@@ -100,6 +100,7 @@ namespace VisitorRegistry.Web.Features.Presence
 
             return Json(new
             {
+                presenceId = presence.Id,
                 visitorId = visitorDto.Id,
                 nome = visitorDto.Nome,
                 cognome = visitorDto.Cognome,
@@ -124,7 +125,7 @@ namespace VisitorRegistry.Web.Features.Presence
                 return BadRequest(new { success = false });
 
             presence.CheckOutTime = DateTime.Now;
-            // perfarlo: salva nel DB
+            
 
             return Json(new
             {
