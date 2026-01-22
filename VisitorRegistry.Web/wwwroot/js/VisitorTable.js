@@ -84,6 +84,30 @@ $(document).ready(function () {
             }
         });
     });
+    $(document).on('click', '.delete-visitor-btn', function () {
+
+        if (!confirm("⚠️ Sei sicuro di voler eliminare questo visitatore"))
+            return;
+
+        const visitorId = $(this).data('visitor-id');
+
+        $.ajax({
+            url: '/Visitor/CancelVisitor',
+            type: 'POST',
+            data: {
+                id: visitorId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function () {
+                alert('✅ Il visitatore è stato eliminato con successo');
+                location.reload();
+            },
+            error: function () {
+                alert('❌ Si è verificato un errore durante la cancellazione ');
+            }
+        });
+    });
+
 
     // Cancella aggiunta nuovo visitatore
     $('#cancelNewVisitorBtn').click(function () {
