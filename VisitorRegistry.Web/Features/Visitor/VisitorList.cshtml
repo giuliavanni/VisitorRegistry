@@ -1,117 +1,131 @@
 @model IEnumerable<VisitorRegistry.Services.Visitors.VisitorListDTO>
 
+<div class="container-xl">
+    <h2>Elenco Visitatori</h2>
 
-<h2>Elenco Visitatori</h2>
+    <!-- Toolbar: ricerca, filtro data, aggiungi, stampa -->
+    <div class="d-flex mb-3 align-items-center gap-2">
+        <!-- Ricerca per nome -->
+        <input type="text" id="searchName" class="form-control form-control-sm" placeholder="Cerca per nome...">
 
-<!-- Toolbar: ricerca, filtro data, aggiungi, stampa -->
-<div class="d-flex mb-3 align-items-center gap-2">
-    <!-- Ricerca per nome -->
-    <input type="text" id="searchName" class="form-control form-control-sm" placeholder="Cerca per nome...">
+        <!-- Filtro per data -->
+        <input type="date" id="filterDate" class="form-control form-control-sm">
 
-    <!-- Filtro per data -->
-    <input type="date" id="filterDate" class="form-control form-control-sm">
+        <!-- Aggiungi nuovo visitatore -->
+        <button id="addVisitorBtn" type="button" class="btn btn-success btn-sm">
+            ➕ Aggiungi
+        </button>
 
-    <!-- Aggiungi nuovo visitatore -->
-    <button id="addVisitorBtn" type="button" class="btn btn-success btn-sm">
-        ➕ Aggiungi
-    </button>
+        <!-- Stampa -->
+        <button id="printBtn" type="button" class="btn btn-secondary btn-sm">
+            🖨️ Stampa
+        </button>
+    </div>
 
-    <!-- Stampa -->
-    <button id="printBtn" type="button" class="btn btn-secondary btn-sm">
-        🖨️ Stampa
-    </button>
-</div>
-
-<table class="table" id="visitorTable">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Nome</th>
-            <th>Cognome</th>
-            <th>Stato Visita</th>
-            <th>Check-in</th>
-            <th>Check-out</th>
-            <th>Gestione</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var visitor in Model)
-        {
+    <table class="table" id="visitorTable">
+        <thead>
             <tr>
-                <td>@visitor.Id</td>
-                <td>@visitor.Nome</td>
-                <td>@visitor.Cognome</td>
-                <td class="visit-status">
-                    @if (visitor.CheckIn == default)
-                    {
-                        <span class="badge bg-warning">Visita programmata</span>
-                    }
-                    else if (visitor.CheckOut == null)
-                    {
-                        <span class="badge bg-success">Visita in corso</span>
-                        <div class="mt-1">
-                            <button class="btn btn-danger btn-sm force-checkout-btn"
-                                    data-presence-id="@visitor.CurrentPresenceId"
-                                    @(visitor.CheckOut == null ? "" : "disabled")>
+                <th>Nome</th>
+                <th>Cognome</th>
+                <th>Stato Visita</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Gestione</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var visitor in Model)
+            {
+                <tr>
+                    <td>@visitor.Nome</td>
+                    <td>@visitor.Cognome</td>
+
+                    <!-- Stato Visita: solo badge -->
+                    <td class="visit-status">
+                        @if (visitor.CheckIn == default)
+                        {
+                            <span class="badge bg-warning">Visita programmata</span>
+                        }
+                        else if (visitor.CheckOut == null)
+                        {
+                            <span class="badge bg-success">Visita in corso</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Visita terminata</span>
+                        }
+                    </td>
+
+                    <!-- Check-in -->
+                    <td>@(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+
+                    <!-- Check-out: mostra data o bottone Forza Check-Out -->
+                    <td>
+                        @if (visitor.CheckOut.HasValue)
+                        {
+                            @visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm")
+                        }
+                        else if (visitor.CheckIn != default && visitor.CheckOut == null)
+                        {
+                            <button class="btn btn-outline-warning btn-sm force-checkout-btn"
+                                    data-presence-id="@visitor.CurrentPresenceId">
                                 Forza Check-Out
                             </button>
-                        </div>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Visita terminata</span>
-                    }
-                </td>
-                <td>@(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
-                <td>@(visitor.CheckOut.HasValue? visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                        }
+                    </td>
+
+                    <!-- Gestione -->
+                    <td class="d-flex gap-1">
+                        <button class="btn btn-info btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#detailsModal"
+                                data-presence-id="@visitor.CurrentPresenceId">
+                            Dettagli visita
+                        </button>
+
+                        <button class="btn btn-danger btn-sm delete-visitor-btn"
+                                data-visitor-id="@visitor.Id">
+                            🗑️ Elimina
+                        </button>
+                    </td>
+
+                    @Html.AntiForgeryToken()
+                </tr>
+            }
+
+            <!-- Riga aggiunta nuovo visitatore (inizialmente nascosta) -->
+            <tr id="newVisitorRowTable" style="display:none;">
+                <td>—</td>
+                <td><input type="text" id="newNome" class="form-control form-control-sm" placeholder="Nome"></td>
+                <td><input type="text" id="newCognome" class="form-control form-control-sm" placeholder="Cognome"></td>
+                <td>—</td>
+                <td><input type="datetime-local" id="newCheckIn" class="form-control form-control-sm"></td>
+                <td><input type="datetime-local" id="newCheckOut" class="form-control form-control-sm"></td>
                 <td class="d-flex gap-1">
-                    <button class="btn btn-info btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#detailsModal"
-                            data-presence-id="@visitor.CurrentPresenceId">
-                        Dettagli visita
-                    </button>
-
-                    <button class="btn btn-danger btn-sm delete-visitor-btn"
-                            data-visitor-id="@visitor.Id">
-                        🗑️ Elimina
-                    </button>
+                    <button type="button" id="saveNewVisitorBtn" class="btn btn-primary btn-sm">💾 Salva</button>
+                    <button type="button" id="cancelNewVisitorBtn" class="btn btn-danger btn-sm">❌</button>
                 </td>
-                @Html.AntiForgeryToken()
-
             </tr>
-        }
+        </tbody>
+    </table>
 
-        <!-- Riga aggiunta nuovo visitatore (inizialmente nascosta) -->
-        <tr id="newVisitorRowTable" style="display:none;">
-            <td>—</td>
-            <td><input type="text" id="newNome" class="form-control form-control-sm" placeholder="Nome"></td>
-            <td><input type="text" id="newCognome" class="form-control form-control-sm" placeholder="Cognome"></td>
-            <td>—</td>
-            <td><input type="datetime-local" id="newCheckIn" class="form-control form-control-sm"></td>
-            <td><input type="datetime-local" id="newCheckOut" class="form-control form-control-sm"></td>
-            <td class="d-flex gap-1">
-                <button type="button" id="saveNewVisitorBtn" class="btn btn-primary btn-sm">💾 Salva</button>
-                <button type="button" id="cancelNewVisitorBtn" class="btn btn-danger btn-sm">❌</button>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-<!-- Modal Dettagli -->
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">Dettagli visita</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
-            </div>
-            <div class="modal-body" id="modalContent">
-                <p class="text-center">Caricamento...</p>
+    <!-- Modal Dettagli -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Dettagli visita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body" id="modalContent">
+                    <p class="text-center">Caricamento...</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="~/css/visitorslist.css" asp-append-version="true" />
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

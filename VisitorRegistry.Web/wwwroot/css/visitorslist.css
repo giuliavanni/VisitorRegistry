@@ -1,0 +1,53 @@
+#visitorTable .badge,
+#visitorTable .btn {
+    font-size: 0.85rem;
+}
+
+#visitorTable .badge {
+    padding: 0.4em 0.65em;
+}
+
+.visit-status .badge {
+    display: inline-block;
+    margin-bottom: 0.25rem;
+}
+
+#visitorTable .btn,
+#addVisitorBtn,
+#printBtn {
+    padding: 0.35rem 0.6rem;
+    line-height: 1.2;
+}
+
+/* Badge più leggibili e proporzionati ai bottoni */
+#visitorTable .badge {
+    font-size: 0.9rem; /* leggermente più grande */
+    padding: 0.45em 0.7em; /* più aria intorno */
+    border-radius: 0.35rem; /* angoli leggermente arrotondati */
+    display: inline-block;
+    margin-bottom: 0.3rem; /* separazione dal pulsante */
+}
+
+/* Separazione chiara tra badge e pulsante nella stessa cella */
+.visit-status {
+    display: flex;
+    flex-direction: column; 
+    gap: 0.25rem; 
+}
+
+    /* Badge specifici (colore coerente) */
+    .visit-status .badge.bg-warning {
+        background-color: #ffc107; /* Visita programmata */
+        color: #212529; 
+    }
+
+    .visit-status .badge.bg-success {
+        background-color: #198754; /* Visita in corso */
+        color: #fff;
+    }
+
+    .visit-status .badge.bg-secondary {
+        background-color: #6c757d; /* Visita terminata */
+        color: #fff;
+    }
+
