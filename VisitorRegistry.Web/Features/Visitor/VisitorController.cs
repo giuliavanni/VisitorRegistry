@@ -1,6 +1,7 @@
 #nullable enable
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QRCoder;
 using System;
 using System.IO;
@@ -139,5 +140,43 @@ namespace VisitorRegistry.Web.Features.Visitor
 
             return Json(new { message = "Visitatore aggiornato con successo" });
         }
+
+        // =========================
+        // FORZA CHECK-OUT (POST)
+        // =========================
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public virtual async Task<IActionResult> UpdatePresence(int visitorId, string mode)
+        {
+            if (mode != "out")
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Modalità non valida"
+                });
+            }
+
+            var presence = await _visitorService.ForceCheckoutAsync(visitorId);
+
+            if (presence == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Presenza non trovata o già chiusa"
+                });
+            }
+
+            return Json(new
+            {
+                success = true,
+                checkoutTime = presence.CheckOutTime?.ToString("dd/MM/yyyy HH:mm")
+            });
+        }
+
+
+
+
     }
 }

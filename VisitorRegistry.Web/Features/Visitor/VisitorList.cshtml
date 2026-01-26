@@ -44,15 +44,15 @@
                     <td class="visit-status">
                         @if (visitor.CheckIn == default)
                         {
-                            <span class="badge bg-warning">Visita programmata</span>
+                            <span class="badge bg-warning status-badge">Visita programmata</span>
                         }
                         else if (visitor.CheckOut == null)
                         {
-                            <span class="badge bg-success">Visita in corso</span>
+                            <span class="badge bg-success status-badge">Visita in corso</span>
                         }
                         else
                         {
-                            <span class="badge bg-secondary">Visita terminata</span>
+                            <span class="badge bg-secondary status-badge">Visita terminata</span>
                         }
                     </td>
 
@@ -60,7 +60,7 @@
                     <td>@(visitor.CheckIn.HasValue? visitor.CheckIn.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
 
                     <!-- Check-out: mostra data o bottone Forza Check-Out -->
-                    <td>
+                    <td class="checkout-time">
                         @if (visitor.CheckOut.HasValue)
                         {
                             @visitor.CheckOut.Value.ToString("dd/MM/yyyy HH:mm")
@@ -68,6 +68,7 @@
                         else if (visitor.CheckIn != default && visitor.CheckOut == null)
                         {
                             <button class="btn btn-outline-warning btn-sm force-checkout-btn"
+                                    data-visitor-id="@visitor.Id"
                                     data-presence-id="@visitor.CurrentPresenceId">
                                 Forza Check-Out
                             </button>

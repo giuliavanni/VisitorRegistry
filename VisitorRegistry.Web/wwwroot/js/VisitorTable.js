@@ -13,7 +13,7 @@ $(document).ready(function () {
         var selectedDate = $(this).val(); // yyyy-MM-dd
 
         $("#visitorTable tbody tr").not('#newVisitorRowTable').each(function () {
-            var checkInText = $(this).find('td:eq(4)').text().trim();
+            var checkInText = $(this).find('td:eq(3)').text().trim();
 
             if (checkInText === '—' || selectedDate === '') {
                 $(this).show();
@@ -60,22 +60,64 @@ $(document).ready(function () {
             type: 'POST',
             data: newVisitor,
             success: function (response) {
+                // --- badge stato visita ---
+                let statoHtml = '';
+                if (response.statoVisita === "Visita programmata") {
+                    statoHtml = `<span class="badge bg-warning status-badge">Visita programmata</span>`;
+                }
+                else if (response.statoVisita === "Visita in corso") {
+                    statoHtml = `<span class="badge bg-success status-badge">Visita in corso</span>`;
+                }
+                else {
+                    statoHtml = `<span class="badge bg-secondary status-badge">Visita terminata</span>`;
+                }
+
+                // --- colonna checkout ---
+                let checkoutHtml = '';
+                if (response.checkOut && response.checkOut !== "—") {
+                    checkoutHtml = response.checkOut;
+                }
+                else if (response.checkIn && response.checkIn !== "—") {
+                    checkoutHtml = `
+            <button class="btn btn-outline-warning btn-sm force-checkout-btn"
+                    data-visitor-id="${response.id}"
+                    data-presence-id="${response.currentPresenceId}">
+                Forza Check-Out
+            </button>`;
+                }
+
                 var newRow = `<tr>
-                    <td>${response.id}</td>
-                    <td>${response.nome}</td>
-                    <td>${response.cognome}</td>
-                    <td>${response.statoVisita}</td>
-                    <td>${response.checkIn}</td>
-                    <td>${response.checkOut}</td>
-                    <td>
-                        <button class="btn btn-info btn-sm me-1" data-bs-toggle="modal" data-bs-target="#detailsModal" data-presence-id="${response.currentPresenceId}">Dettagli visita</button>
-                        <a class="btn btn-warning btn-sm" href="/Visitor/Edit/${response.id}">Modifica</a>
-                    </td>
-                </tr>`;
+        <td>${response.nome}</td>
+        <td>${response.cognome}</td>
+
+        <td class="visit-status">
+            ${statoHtml}
+        </td>
+
+        <td>${response.checkIn ?? ""}</td>
+
+        <td class="checkout-time">
+            ${checkoutHtml}
+        </td>
+
+        <td>
+            <button class="btn btn-info btn-sm me-1"
+                    data-bs-toggle="modal"
+                    data-bs-target="#detailsModal"
+                    data-presence-id="${response.currentPresenceId}">
+                Dettagli visita
+            </button>
+
+            <a class="btn btn-warning btn-sm"
+               href="/Visitor/Edit/${response.id}">
+                Modifica
+            </a>
+        </td>
+    </tr>`;
 
                 $('#visitorTable tbody').prepend(newRow);
 
-                // Resetta campi e nasconde riga
+                // reset campi e nasconde riga
                 $('#newVisitorRowTable input').val('');
                 $('#newVisitorRowTable').hide();
             },

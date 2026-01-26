@@ -28,7 +28,9 @@ namespace VisitorRegistry.Services.Visitors
                 Nome = dto.Nome,
                 Cognome = dto.Cognome,
                 DataVisita = dto.DataVisita ?? DateTime.Now,
-                QrCode = dto.QrCode
+                QrCode = dto.QrCode,
+                Ditta = dto.Ditta,
+                Referente = dto.Referente
             };
 
             if (dto.CheckIn.HasValue || dto.CheckOut.HasValue)
@@ -246,37 +248,61 @@ namespace VisitorRegistry.Services.Visitors
                 .Where(p => p.VisitorId == visitorId)
                 .OrderByDescending(p => p.CheckInTime)
                 .FirstOrDefaultAsync();
-            // Se non esiste una presenza e stiamo facendo check-in, crea una nuova presenza 
-            if (presence == null && mode == "in")
+
+            if (mode == "out")
             {
-                presence = new Presence
+                if (presence == null)
+                {
+                    presence = new Presence
+                    {
+                        VisitorId = visitorId,
+                        CheckInTime = DateTime.Now,
+                        CheckOutTime = DateTime.Now
+                    };
+                    _db.Presences.Add(presence);
+                }
+                else if (presence.CheckOutTime == null)
+                {
+                    presence.CheckOutTime = DateTime.Now;
+                }
+
+                await _db.SaveChangesAsync();
+                return true;
+            }
+
+            if (mode == "in")
+            {
+                _db.Presences.Add(new Presence
                 {
                     VisitorId = visitorId,
                     CheckInTime = DateTime.Now
-                };
-                _db.Presences.Add(presence);
-            }
-            else if (presence != null)
-            {
-                if (mode == "out" && presence.CheckOutTime == null)
-                {
-                    //Aggiorna check-out
-                    presence.CheckOutTime = DateTime.Now;
-                }
-                else
-                {
-                    //Stato già registrato, niente da fare
-                    return false;
-                }
-            }
-            else
-            {
-                //Tentativo di check-out senza check-in
-                return false;
+                });
+
+                await _db.SaveChangesAsync();
+                return true;
             }
 
-            await _db.SaveChangesAsync();
-            return true;
+            return false;
         }
+
+        // =========================
+        // FORCE CHECK-OUT
+        // =========================
+        public async Task<Presence?> ForceCheckoutAsync(int visitorId)
+        {
+            var presence = await _db.Presences
+                .Where(p => p.VisitorId == visitorId && p.CheckOutTime == null)
+                .OrderByDescending(p => p.CheckInTime)
+                .FirstOrDefaultAsync();
+
+            if (presence == null)
+                return null;
+
+            presence.CheckOutTime = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            return presence;
+        }
+
     }
 }
