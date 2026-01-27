@@ -49,6 +49,8 @@ $(document).ready(function () {
         var newVisitor = {
             Nome: $('#newNome').val(),
             Cognome: $('#newCognome').val(),
+            Ditta: $('#newDitta').val(),
+            Rferente: $('#newReferente').val(),
             DataVisita: $('#newCheckIn').val(),
             QrCode: '',
             CheckIn: $('#newCheckIn').val(),
