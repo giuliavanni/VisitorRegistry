@@ -36,7 +36,7 @@ namespace VisitorRegistry.Migrations
 
                     b.HasIndex("VisitorId");
 
-                    b.ToTable("Presences");
+                    b.ToTable("Presences", (string)null);
 
                     b.HasData(
                         new
@@ -73,7 +73,7 @@ namespace VisitorRegistry.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Visitors");
+                    b.ToTable("Visitors", (string)null);
 
                     b.HasData(
                         new
@@ -109,7 +109,7 @@ namespace VisitorRegistry.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
