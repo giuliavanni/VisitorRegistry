@@ -103,6 +103,8 @@ namespace VisitorRegistry.Web.Features.Visitor
                 cognome = createdVisitor.Cognome,
                 checkIn = newVisitor.CheckIn?.ToString("dd/MM/yyyy HH:mm") ?? "—",
                 checkOut = newVisitor.CheckOut?.ToString("dd/MM/yyyy HH:mm") ?? "—",
+                ditta = createdVisitor.Ditta,
+                referente = createdVisitor.Referente,
                 statoVisita = newVisitor.CheckIn == null ? "Visita programmata" : "Visita in corso",
                 currentPresenceId = newId
             });
