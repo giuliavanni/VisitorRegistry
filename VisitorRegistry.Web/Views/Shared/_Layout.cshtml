@@ -9,7 +9,6 @@
     var action = ViewContext.RouteData.Values["action"]?.ToString();
     var isVisitorIndex = controller == "Visitor" && action == "Index";
     var isVisitorController = controller == "Visitor";
-    // URL del logo: se siamo nel controller Visitor, vai a Start
     var logoUrl = isVisitorController ? Url.Action("Start", "Home") : "/";
 }
 @section metas {
