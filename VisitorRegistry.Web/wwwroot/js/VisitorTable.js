@@ -70,7 +70,7 @@ $(document).ready(function () {
                 else if (response.statoVisita === "Visita in corso") {
                     statoHtml = `<span class="badge bg-success status-badge">Visita in corso</span>`;
                 }
-                else {
+                else if (response.statoVisita === "Visita terminata") {
                     statoHtml = `<span class="badge bg-secondary status-badge">Visita terminata</span>`;
                 }
 
@@ -88,32 +88,39 @@ $(document).ready(function () {
             </button>`;
                 }
 
+                
+                let dettagliBtn = '';
+                if (response.currentPresenceId) {
+                    dettagliBtn = `
+                <button class="btn btn-info btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#detailsModal"
+                        data-presence-id="${response.currentPresenceId}">
+                    Dettagli visita
+                </button>`;
+                }
+
                 var newRow = `<tr>
-        <td>${response.nome}</td>
-        <td>${response.cognome}</td>
+                 <td>${response.nome}</td>
+                 <td>${response.cognome}</td>
 
-        <td class="visit-status">
-            ${statoHtml}
-        </td>
+                 <td class="visit-status">
+               ${statoHtml}
+               </td>
 
-        <td>${response.checkIn ?? ""}</td>
+              <td>${response.checkIn ?? ""}</td>
 
-        <td class="checkout-time">
-            ${checkoutHtml}
-        </td>
+              <td class="checkout-time">
+              ${checkoutHtml}
+              </td>
 
-        <td>
-            <button class="btn btn-info btn-sm me-1"
-                    data-bs-toggle="modal"
-                    data-bs-target="#detailsModal"
-                    data-presence-id="${response.currentPresenceId}">
-                Dettagli visita
+        <td class="d-flex gap-1">
+            ${dettagliBtn}
+
+            <button class="btn btn-danger btn-sm delete-visitor-btn"
+                    data-visitor-id="${response.id}">
+                🗑️ Elimina
             </button>
-
-            <a class="btn btn-warning btn-sm"
-               href="/Visitor/Edit/${response.id}">
-                Modifica
-            </a>
         </td>
     </tr>`;
 
