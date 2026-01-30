@@ -84,6 +84,8 @@ namespace VisitorRegistry.Web.Features.Visitor
         // Aggiungi nuovo visitatore (POST)
         // =========================
         [HttpPost]
+        [HttpPost]
+        [HttpPost]
         public virtual async Task<IActionResult> AddVisitor([FromForm] VisitorCreateDTO newVisitor)
         {
             if (!ModelState.IsValid)
@@ -95,9 +97,27 @@ namespace VisitorRegistry.Web.Features.Visitor
             if (createdVisitor == null)
                 return StatusCode(500, "Errore durante la creazione del visitatore");
 
+            
+            var latestPresence = await _visitorService.GetLatestPresence(newId);
+            int? actualPresenceId = latestPresence?.Id;
+
+            // Determinare lo stato visita
+            string statoVisita;
+            if (newVisitor.CheckIn == null)
+            {
+                statoVisita = "Visita programmata";
+            }
+            else if (newVisitor.CheckOut == null)
+            {
+                statoVisita = "Visita in corso";
+            }
+            else
+            {
+                statoVisita = "Visita terminata";
+            }
+
             return Json(new
             {
-
                 id = createdVisitor.Id,
                 nome = createdVisitor.Nome,
                 cognome = createdVisitor.Cognome,
@@ -105,11 +125,10 @@ namespace VisitorRegistry.Web.Features.Visitor
                 checkOut = newVisitor.CheckOut?.ToString("dd/MM/yyyy HH:mm") ?? "—",
                 ditta = createdVisitor.Ditta,
                 referente = createdVisitor.Referente,
-                statoVisita = newVisitor.CheckIn == null ? "Visita programmata" : "Visita in corso",
-                currentPresenceId = newId
+                statoVisita = statoVisita,
+                currentPresenceId = actualPresenceId  
             });
         }
-
         // =========================
         // Modifica visitatore (POST)
         // =========================
@@ -176,9 +195,6 @@ namespace VisitorRegistry.Web.Features.Visitor
                 checkoutTime = presence.CheckOutTime?.ToString("dd/MM/yyyy HH:mm")
             });
         }
-
-
-
 
     }
 }
