@@ -51,6 +51,8 @@ namespace VisitorRegistry.Web.Features.Home
             {
                 Nome = model.Nome,
                 Cognome = model.Cognome,
+                Ditta = model.Ditta,
+                Referente = model.Referente,
                 DataVisita = DateTime.Now,
                 QrCode = qrContent
             };

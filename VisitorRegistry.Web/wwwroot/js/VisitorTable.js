@@ -50,7 +50,7 @@ $(document).ready(function () {
             Nome: $('#newNome').val(),
             Cognome: $('#newCognome').val(),
             Ditta: $('#newDitta').val(),
-            Rferente: $('#newReferente').val(),
+            Referente: $('#newReferente').val(),
             DataVisita: $('#newCheckIn').val(),
             QrCode: '',
             CheckIn: $('#newCheckIn').val(),
