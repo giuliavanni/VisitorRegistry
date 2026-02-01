@@ -193,21 +193,37 @@ createApp({
                     return r.json();
                 })
                 .then(res => {
+                    console.log('FORCE CHECKOUT RESPONSE:', res);
+
                     if (!res.success) {
-                        alert('Checkout non riuscito');
+                        alert(res.message);
                         return;
                     }
 
-                    // aggiorna tabella
-                    visitor.CheckOut = res.checkoutTime;
+                    const checkoutTime = res.checkOutTime;
 
-                    // aggiorna modal se aperto
-                    if (this.visitor &&
-                        this.visitor.presenceId === visitor.CurrentPresenceId) {
-                        this.visitor.checkOutTime = res.checkoutTime;
+                    const index = this.visitors.findIndex(v => v.Id === visitor.Id);
+                    if (index !== -1) {
+                        this.visitors[index] = {
+                            ...this.visitors[index],
+                            CheckOut: checkoutTime,
+                            StatoVisita: 'Uscito',
+                            CurrentPresenceId: null
+                        };
+                    }
+                    if (
+                        this.visitor &&
+                        this.visitor.presenceId === visitor.CurrentPresenceId
+                    ) {
+                        this.visitor = {
+                            ...this.visitor,
+                            checkOutTime: checkoutTime,
+                            presenceId: null
+                        };
                     }
                 })
-                .catch(() => {
+                .catch(err => {
+                    console.error(err);
                     alert('Errore durante il force checkout');
                 });
         },

@@ -171,7 +171,7 @@ namespace VisitorRegistry.Web.Features.Visitor
         {
             if (mode != "out")
             {
-                return Json(new
+                return Ok(new
                 {
                     success = false,
                     message = "Modalità non valida"
@@ -182,19 +182,21 @@ namespace VisitorRegistry.Web.Features.Visitor
 
             if (presence == null)
             {
-                return Json(new
+                return Ok(new
                 {
                     success = false,
                     message = "Presenza non trovata o già chiusa"
                 });
             }
 
-            return Json(new
+            return Ok(new
             {
                 success = true,
-                checkOutTime = presence.CheckOutTime!.Value.ToString("yyyy-MM-ddTHH:mm:ss")
+                checkOutTime = presence.CheckOutTime!.Value
+                    .ToString("yyyy-MM-ddTHH:mm:ss")
             });
         }
+
 
     }
 }
