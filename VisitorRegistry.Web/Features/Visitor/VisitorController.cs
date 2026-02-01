@@ -84,8 +84,6 @@ namespace VisitorRegistry.Web.Features.Visitor
         // Aggiungi nuovo visitatore (POST)
         // =========================
         [HttpPost]
-        [HttpPost]
-        [HttpPost]
         public virtual async Task<IActionResult> AddVisitor([FromForm] VisitorCreateDTO newVisitor)
         {
             if (!ModelState.IsValid)
@@ -133,44 +131,26 @@ namespace VisitorRegistry.Web.Features.Visitor
         // Modifica visitatore (POST)
         // =========================
         [HttpPost]
-        public virtual async Task<IActionResult> EditVisitor([FromForm] VisitorEditDTO editedVisitor)
+        public async Task<IActionResult> EditVisitor([FromForm] VisitorEditDTO editedVisitor)
         {
             if (!ModelState.IsValid)
-                return BadRequest("Dati non validi");
+                return BadRequest();
 
-            // Recupera il visitatore esistente
-            var existingVisitor = await _visitorService.GetById(editedVisitor.Id);
-            if (existingVisitor == null)
-                return NotFound();
-
-            // Mantiene il QR Code esistente (NON MODIFICABILE)
-            editedVisitor.QrCode = existingVisitor.QrCode;
-
-            var presence = await _visitorService.GetPresenceById(editedVisitor.PresenceId.Value);
-
-
-            // Usa il metodo che aggiorna sia Visitor che Presence
-            var success = await _visitorService.VisitorUpdateWithPresence(
-              editedVisitor,
-              editedVisitor.PresenceId
-            );
-
+            var success = await _visitorService.VisitorUpdateWithPresence(editedVisitor);
 
             if (!success)
-                return StatusCode(500, "Errore durante l'aggiornamento del visitatore");
+                return StatusCode(500);
 
             return Json(new
             {
-                presenceId = editedVisitor.PresenceId,
+                visitorId = editedVisitor.Id,
                 nome = editedVisitor.Nome,
                 cognome = editedVisitor.Cognome,
                 ditta = editedVisitor.Ditta,
-                referente = editedVisitor.Referente,
-                checkInTime = editedVisitor.CheckInTime,
-                checkOutTime = editedVisitor.CheckOutTime,
-                qrCode = editedVisitor.QrCode
+                referente = editedVisitor.Referente
             });
         }
+
 
         // =========================
         // FORZA CHECK-OUT (POST)

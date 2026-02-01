@@ -99,23 +99,28 @@ createApp({
 
             fetch('/Visitor/EditVisitor', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(payload)
             })
                 .then(r => {
                     if (!r.ok) throw new Error();
                     return r.json();
                 })
+
                 .then(() => {
-                    //  RICARICA SEMPRE I DATI REALI
                     return fetch(`/Presence/DetailsJson?presenceId=${payload.PresenceId}`);
                 })
                 .then(r => r.json())
                 .then(data => {
+
                     // aggiorna modal
-                    this.visitor = data;
+                    this.visitor = {
+                        ...this.visitor,
+                        nome: data.nome,
+                        cognome: data.cognome,
+                        ditta: data.ditta,
+                        referente: data.referente
+                    };
 
                     // aggiorna tabella
                     const index = this.visitors.findIndex(

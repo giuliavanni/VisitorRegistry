@@ -137,7 +137,7 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         // UPDATE CON PRESENCE
         // =========================
-        public async Task<bool> VisitorUpdateWithPresence(VisitorEditDTO dto, int? presenceId)
+        public async Task<bool> VisitorUpdateWithPresence(VisitorEditDTO dto)
         {
             var visitor = await _db.Visitors
                 .Include(v => v.Presences)
@@ -146,35 +146,19 @@ namespace VisitorRegistry.Services.Visitors
             if (visitor == null)
                 return false;
 
+            // aggiorna SOLO anagrafica
             visitor.Nome = dto.Nome;
             visitor.Cognome = dto.Cognome;
             visitor.Ditta = dto.Ditta;
             visitor.Referente = dto.Referente;
-            visitor.DataVisita = dto.DataVisita;
 
-            if (presenceId.HasValue)
-            {
-                var presence = await _db.Presences.FindAsync(presenceId.Value);
-                if (presence != null)
-                {
-                    if (dto.CheckInTime.HasValue)
-                        presence.CheckInTime = dto.CheckInTime.Value;
-
-                    presence.CheckOutTime = dto.CheckOutTime;
-                }
-            }
-            else if (dto.CheckInTime.HasValue)
-            {
-                visitor.Presences.Add(new Presence
-                {
-                    CheckInTime = dto.CheckInTime.Value,
-                    CheckOutTime = dto.CheckOutTime
-                });
-            }
 
             await _db.SaveChangesAsync();
             return true;
         }
+
+
+
 
         // =========================
         // DELETE

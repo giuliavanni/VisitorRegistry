@@ -16,13 +16,13 @@ window.visitorListApp = createApp({
         filteredVisitors() {
             return this.visitors.filter(v => {
 
-                // 🔍 filtro testo
+                // filtro testo
                 const textMatch =
                     !this.searchText ||
                     v.nome.toLowerCase().includes(this.searchText.toLowerCase()) ||
                     v.cognome.toLowerCase().includes(this.searchText.toLowerCase());
 
-                // 📅 filtro data
+                // filtro data
                 let dateMatch = true;
                 if (this.selectedDate && v.checkIn) {
                     // checkIn: dd/MM/yyyy HH:mm
@@ -39,7 +39,7 @@ window.visitorListApp = createApp({
 
     methods: {
 
-        // ➕ aggiunta nuovo visitatore
+        // aggiunta nuovo visitatore
         addVisitor(visitor) {
             this.visitors.unshift({
                 ...visitor,
@@ -47,12 +47,12 @@ window.visitorListApp = createApp({
             });
         },
 
-        // 🗑️ elimina visitatore
+        // elimina visitatore
         removeVisitor(visitorId) {
             this.visitors = this.visitors.filter(v => v.id !== visitorId);
         },
 
-        // 🔍 dettagli visita
+        // dettagli visita
         openDetails(visitor) {
             if (!visitor.currentPresenceId) return;
 
@@ -73,7 +73,7 @@ window.visitorListApp = createApp({
                 });
         },
 
-        // 🧹 reset filtri
+        // reset filtri
         resetFilters() {
             this.searchText = '';
             this.selectedDate = '';
