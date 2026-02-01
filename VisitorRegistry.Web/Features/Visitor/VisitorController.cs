@@ -131,7 +131,7 @@ namespace VisitorRegistry.Web.Features.Visitor
         // Modifica visitatore (POST)
         // =========================
         [HttpPost]
-        public async Task<IActionResult> EditVisitor([FromForm] VisitorEditDTO editedVisitor)
+        public virtual async Task<IActionResult> EditVisitor([FromForm] VisitorEditDTO editedVisitor)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -182,7 +182,7 @@ namespace VisitorRegistry.Web.Features.Visitor
             return Json(new
             {
                 success = true,
-                checkoutTime = presence.CheckOutTime?.ToString("dd/MM/yyyy HH:mm")
+                checkOutTime = presence.CheckOutTime!.Value.ToString("yyyy-MM-ddTHH:mm:ss")
             });
         }
 

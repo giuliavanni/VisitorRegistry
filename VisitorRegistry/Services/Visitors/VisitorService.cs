@@ -56,35 +56,37 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         public async Task<List<VisitorListDTO>> GetAll()
         {
-            return await _db.Visitors
+            var data = await _db.Visitors
                 .Include(v => v.Presences)
                 .OrderBy(v => v.Cognome)
-                .Select(v => new VisitorListDTO
+                .ToListAsync(); // ? qui FINISCE SQL
+
+            return data.Select(v =>
+            {
+                var lastPresence = v.Presences
+                    .OrderByDescending(p => p.CheckInTime)
+                    .FirstOrDefault();
+
+                return new VisitorListDTO
                 {
                     Id = v.Id,
                     Nome = v.Nome,
                     Cognome = v.Cognome,
-                    CheckIn = v.Presences
-                        .OrderByDescending(p => p.CheckInTime)
-                        .Select(p => (DateTime?)p.CheckInTime)
-                        .FirstOrDefault(),
-                    CheckOut = v.Presences
-                        .OrderByDescending(p => p.CheckInTime)
-                        .Select(p => p.CheckOutTime)
-                        .FirstOrDefault(),
-                    StatoVisita = !v.Presences.Any()
+
+                    CheckIn = lastPresence?.CheckInTime,
+                    CheckOut = lastPresence?.CheckOutTime,
+                    CurrentPresenceId = lastPresence?.Id,
+
+                    StatoVisita = lastPresence == null
                         ? "Visita programmata"
-                        : v.Presences
-                            .OrderByDescending(p => p.CheckInTime)
-                            .Select(p => p.CheckOutTime == null ? "Dentro" : "Uscito")
-                            .FirstOrDefault(),
-                    CurrentPresenceId = v.Presences
-                        .OrderByDescending(p => p.CheckInTime)
-                        .Select(p => (int?)p.Id)
-                        .FirstOrDefault()
-                })
-                .ToListAsync();
+                        : lastPresence.CheckOutTime == null
+                            ? "Dentro"
+                            : "Uscito"
+                };
+            }).ToList();
         }
+
+
 
         // =========================
         // READ - DETAIL
@@ -139,25 +141,17 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         public async Task<bool> VisitorUpdateWithPresence(VisitorEditDTO dto)
         {
-            var visitor = await _db.Visitors
-                .Include(v => v.Presences)
-                .FirstOrDefaultAsync(v => v.Id == dto.Id);
+            var visitor = await _db.Visitors.FindAsync(dto.Id);
+            if (visitor == null) return false;
 
-            if (visitor == null)
-                return false;
-
-            // aggiorna SOLO anagrafica
             visitor.Nome = dto.Nome;
             visitor.Cognome = dto.Cognome;
             visitor.Ditta = dto.Ditta;
             visitor.Referente = dto.Referente;
 
-
             await _db.SaveChangesAsync();
             return true;
         }
-
-
 
 
         // =========================
