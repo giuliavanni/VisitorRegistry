@@ -6,6 +6,7 @@ using QRCoder;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using VisitorRegistry.Services.Shared;
 using VisitorRegistry.Services.Visitors;
 using VisitorRegistry.Web.Features.Presence;
 
@@ -150,6 +151,15 @@ namespace VisitorRegistry.Web.Features.Visitor
                 referente = editedVisitor.Referente
             });
         }
+        
+
+        [HttpPost]
+        public virtual async Task<IActionResult> Delete(int id)
+        {
+            var result = await _visitorService.Delete(id);
+            return Json(new { success = result });
+        }
+
 
 
         // =========================

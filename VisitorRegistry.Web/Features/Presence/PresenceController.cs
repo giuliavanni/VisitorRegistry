@@ -115,6 +115,13 @@ namespace VisitorRegistry.Web.Features.Presence
         }
 
         [HttpPost]
+        public virtual async Task<IActionResult> Delete(int id)
+        {
+            var result = await _visitorService.Delete(id);
+            return Json(new { success = result });
+        }
+
+        [HttpPost]
         public virtual async Task<IActionResult> ForceCheckOut(int presenceId)
         {
             var presence = await _visitorService.GetPresenceById(presenceId);
