@@ -159,7 +159,17 @@ namespace VisitorRegistry.Web.Features.Visitor
             if (!success)
                 return StatusCode(500, "Errore durante l'aggiornamento del visitatore");
 
-            return Json(new { message = "Visitatore aggiornato con successo" });
+            return Json(new
+            {
+                presenceId = editedVisitor.PresenceId,
+                nome = editedVisitor.Nome,
+                cognome = editedVisitor.Cognome,
+                ditta = editedVisitor.Ditta,
+                referente = editedVisitor.Referente,
+                checkInTime = editedVisitor.CheckInTime,
+                checkOutTime = editedVisitor.CheckOutTime,
+                qrCode = editedVisitor.QrCode
+            });
         }
 
         // =========================

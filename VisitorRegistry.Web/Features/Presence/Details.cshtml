@@ -2,27 +2,62 @@
 
 <h2>Dettagli visita</h2>
 
-<div>
-    <p><strong>Nome:</strong> @Model.Nome</p>
-    <p><strong>Cognome:</strong> @Model.Cognome</p>
-    <p><strong>Ditta:</strong> @(Model.Ditta ?? "-")</p>
-    <p><strong>Referente:</strong> @(Model.Referente ?? "-")</p>
-    <p><strong>Data visita:</strong> @(Model.DataVisita.ToString("dd/MM/yyyy"))</p>
-    <p><strong>Check-in:</strong> @(Model.CheckInTime?.ToString("HH:mm") ?? "—")</p>
-    <p><strong>Check-out:</strong> @(Model.CheckOutTime?.ToString("HH:mm") ?? "Non ancora effettuato")</p>
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="detailsModalApp">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Dettagli visita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- LOADING -->
+                <p v-if="loading" class="text-center">
+                    Caricamento...
+                </p>
+
+                <!-- VISUALIZZAZIONE -->
+                <div v-else-if="visitor && !editMode">
+                    <p><strong>Nome:</strong> {{ visitor.nome }}</p>
+                    <p><strong>Cognome:</strong> {{ visitor.cognome }}</p>
+                    <p><strong>Ditta:</strong> {{ visitor.ditta || '-' }}</p>
+                    <p><strong>Referente:</strong> {{ visitor.referente || '-' }}</p>
+
+                    <p><strong>Check-in:</strong> {{ visitor.checkInTime || '—' }}</p>
+                    <p><strong>Check-out:</strong> {{ visitor.checkOutTime || 'Non effettuato' }}</p>
+
+                    <hr>
+
+                    <img v-if="visitor.qrCodeImageBase64"
+                         :src="`data:image/png;base64,${visitor.qrCodeImageBase64}`"
+                         style="max-width:200px">
+
+                    <hr>
+
+                    <button class="btn btn-warning" v-on:click="enableEdit">
+                        ✏️ Modifica
+                    </button>
+                </div>
+
+                <!-- EDIT -->
+                <div v-else-if="visitor && editMode">
+                    <input class="form-control mb-2" v-model="visitor.nome">
+                    <input class="form-control mb-2" v-model="visitor.cognome">
+                    <input class="form-control mb-2" v-model="visitor.ditta">
+                    <input class="form-control mb-2" v-model="visitor.referente">
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" v-on:click="save">💾 Salva</button>
+                        <button class="btn btn-secondary" v-on:click="cancelEdit">❌ Annulla</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
-<div>
-    <p><strong>QR Code:</strong></p>
-    <img src="data:image/png;base64,@Model.QrCodeImageBase64"
-         alt="QR Code visita"
-         style="max-width:200px;" />
-</div>
-
-<div>
-    <small class="text-muted">Codice:</small>
-    <code>@Model.QrCode</code>
-</div>
-
-
+<script src="~/js/visitorModalVue.js"></script>
 
