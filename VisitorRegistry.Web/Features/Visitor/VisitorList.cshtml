@@ -25,6 +25,11 @@
             </span>
         </button>
 
+        <button class="btn btn-success btn-sm"
+                v-on:click="startAddVisitor">
+            ➕ Aggiungi visitatore
+        </button>
+
 
         <button class="btn btn-outline-secondary btn-sm"
                 v-on:click="printTable">
@@ -47,6 +52,51 @@
         </thead>
 
         <tbody>
+
+            <!--  RIGA NUOVO VISITATORE -->
+            <tr v-if="addingVisitor" class="table-info">
+                <td>
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           v-model="newVisitor.Nome"
+                           placeholder="Nome">
+                </td>
+
+                <td>
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           v-model="newVisitor.Cognome"
+                           placeholder="Cognome">
+                </td>
+
+                <td>
+                    <span class="badge bg-info">Nuovo</span>
+                </td>
+
+                <td>
+                    <input type="datetime-local"
+                           class="form-control form-control-sm"
+                           v-model="newVisitor.CheckIn">
+                </td>
+
+                <td>
+                    <input type="datetime-local"
+                           class="form-control form-control-sm"
+                           v-model="newVisitor.CheckOut">
+                </td>
+
+                <td class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm"
+                            v-on:click="saveNewVisitor">
+                        💾 Salva
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                            v-on:click="cancelNewVisitor">
+                        ❌ Elimina
+                    </button>
+                </td>
+            </tr>
             <tr v-for="v in filteredVisitors" :key="v.Id">
                 <td>{{ v.Nome }}</td>
                 <td>{{ v.Cognome }}</td>
@@ -94,17 +144,29 @@
                 </td>
 
                 <td>
-                    <button class="btn btn-info btn-sm"
-                            v-on:click="openDetails(v.CurrentPresenceId)">
-                        Dettagli visita
-                    </button>
+               
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-info btn-sm"
+                                v-if="v.CurrentPresenceId"
+                                v-on:click="openDetails(v.CurrentPresenceId)">
+                            Dettagli visita
+                        </button>
+                 
+                        <button class="btn btn-danger btn-sm"
+                                :disabled="loading"
+                                v-on:click="deleteVisitor(v.Id)">
+                            🗑️ Elimina
+                        </button>
+
+                    </div>
                 </td>
+
             </tr>
         </tbody>
     </table>
 
     <!-- MODAL -->
-    <div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
