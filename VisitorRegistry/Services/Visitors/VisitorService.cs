@@ -165,11 +165,19 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         public async Task<bool> Delete(int id)
         {
-            var visitor = await _db.Visitors.FindAsync(id);
+            var visitor = await _db.Visitors
+                .Include(v => v.Presences)  // carica anche le presenze
+                .FirstOrDefaultAsync(v => v.Id == id);
+
             if (visitor == null)
                 return false;
 
+            // elimina prima le presenze collegate
+            _db.Presences.RemoveRange(visitor.Presences);
+
+            // poi elimina il visitor
             _db.Visitors.Remove(visitor);
+
             await _db.SaveChangesAsync();
             return true;
         }
