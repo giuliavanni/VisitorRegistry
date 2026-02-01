@@ -1,4 +1,4 @@
-﻿const { createApp } = Vue;
+const { createApp } = Vue;
 
 createApp({
     data() {
@@ -13,6 +13,14 @@ createApp({
 
             showOnlyInProgress: false,
             filterDate: null,
+
+            addingVisitor: false,
+            newVisitor: {
+                Nome: '',
+                Cognome: '',
+                CheckIn: '',
+                CheckOut: ''
+            }
         };
     },
 
@@ -60,6 +68,10 @@ createApp({
 
     methods: {
         openDetails(presenceId) {
+            if (!presenceId) {
+                console.warn("presenceId è null — impossibile caricare i dettagli");
+                return;
+            }
             this.loading = true;
             this.visitor = null;
             this.editMode = false;
@@ -216,6 +228,98 @@ createApp({
                 height: 180
             });
         },  
+        startAddVisitor() {
+            this.addingVisitor = true;
+            this.newVisitor = {
+                Nome: '',
+                Cognome: '',
+                CheckIn: '',
+                CheckOut: ''
+            };
+        },
+
+        cancelNewVisitor() {
+            this.addingVisitor = false;
+            this.newVisitor = {};
+        },
+
+        saveNewVisitor() {
+            if (!this.newVisitor.Nome || !this.newVisitor.Cognome) {
+                alert('Nome e Cognome obbligatori');
+                return;
+            }
+
+            // Costruisci il body solo con i campi che hanno valore
+            const params = new URLSearchParams();
+            params.append('Nome', this.newVisitor.Nome);
+            params.append('Cognome', this.newVisitor.Cognome);
+
+            // Invia CheckIn solo se è stato compilato
+            if (this.newVisitor.CheckIn) {
+                params.append('CheckIn', this.newVisitor.CheckIn);
+            }
+            // Invia CheckOut solo se è stato compilato
+            if (this.newVisitor.CheckOut) {
+                params.append('CheckOut', this.newVisitor.CheckOut);
+            }
+
+            fetch('/Visitor/AddVisitor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params
+            })
+                .then(r => {
+                    if (!r.ok) throw new Error();
+                    return r.json();
+                })
+                .then(data => {
+                    // Usa i valori che ha restituito il backend, non quelli locali
+                    this.visitors.unshift({
+                        Id: data.id,
+                        Nome: data.nome,
+                        Cognome: data.cognome,
+                        CheckIn: this.newVisitor.CheckIn || null,
+                        CheckOut: this.newVisitor.CheckOut || null,
+                        CurrentPresenceId: data.currentPresenceId
+                    });
+
+                    this.addingVisitor = false;
+                })
+                .catch(() => {
+                    alert('Errore durante il salvataggio');
+                });
+        
+        },
+        deleteVisitor(visitorId) {
+            if (!confirm("Sei sicuro di voler eliminare questo visitatore?")) return;
+
+            // disabilita interazioni durante la richiesta
+            this.loading = true;
+
+            fetch('/Visitor/Delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ id: visitorId })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        this.visitors = this.visitors.filter(v => v.Id !== visitorId);
+                    } else {
+                        alert("Errore durante l'eliminazione");
+                    }
+                })
+                .catch(() => {
+                    alert("Errore durante l'eliminazione");
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
+        }
+
+
 
     }
 }).mount('#visitorApp');
