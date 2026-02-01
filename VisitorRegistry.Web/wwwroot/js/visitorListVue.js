@@ -13,6 +13,7 @@ createApp({
 
             showOnlyInProgress: false,
             filterDate: null,
+            showOnlyToday: false,
 
             addingVisitor: false,
             newVisitor: {
@@ -52,7 +53,21 @@ createApp({
                     !this.showOnlyInProgress ||
                     (v.CheckIn && !v.CheckOut);
 
-                return matchName && matchDate && matchInProgress;
+                /* solo visite di oggi */
+                let matchToday = true;
+                if (this.showOnlyToday) {
+                    if (!v.CheckIn) return false;
+
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    const checkIn = new Date(v.CheckIn);
+                    checkIn.setHours(0, 0, 0, 0);
+
+                    matchToday = checkIn.getTime() === today.getTime();
+                }
+
+                return matchName && matchDate && matchInProgress && matchToday;
             });
         }
     },

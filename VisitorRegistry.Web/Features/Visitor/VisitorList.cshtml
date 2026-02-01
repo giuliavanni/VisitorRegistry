@@ -24,6 +24,14 @@
                 {{ visitors.filter(v => v.CheckIn && !v.CheckOut).length }}
             </span>
         </button>
+        
+        <button type="button"
+                class="btn btn-outline-success btn-sm"
+                :class="{ active: showOnlyToday }"
+                v-on:click="showOnlyToday = !showOnlyToday">
+            Oggi
+        </button>
+
 
         <button class="btn btn-success btn-sm"
                 v-on:click="startAddVisitor">
