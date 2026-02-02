@@ -139,7 +139,7 @@
                     <span v-if="!v.CheckIn">—</span>
 
                     <!-- visita in corso -->
-                    <button v-else-if="v.CheckIn && !v.CheckOut"
+                    <button v-if="v.CheckOut == null && v.CheckIn != null"
                             class="btn btn-outline-secondary btn-sm"
                             v-on:click="forceCheckout(v)">
                          Forza Check-out

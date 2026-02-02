@@ -235,7 +235,7 @@ createApp({
                             presenceId: null
                         };
                     }
-                    this.loadVisitors();
+                    return;
                 })
                 .catch(err => {
                     console.error(err);
