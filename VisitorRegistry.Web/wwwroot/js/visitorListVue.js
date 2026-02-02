@@ -222,8 +222,7 @@ createApp({
                         this.visitors[index] = {
                             ...this.visitors[index],
                             CheckOut: checkoutTime,
-                            StatoVisita: 'Uscito',
-                            CurrentPresenceId: null
+                            StatoVisita: 'Uscito'
                         };
                     }
                     if (
@@ -236,6 +235,7 @@ createApp({
                             presenceId: null
                         };
                     }
+                    this.loadVisitors();
                 })
                 .catch(err => {
                     console.error(err);
@@ -349,8 +349,6 @@ createApp({
                     this.loading = false;
                 });
         }
-
-
 
     }
 }).mount('#visitorApp');
