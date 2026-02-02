@@ -8,12 +8,12 @@ using System.IO;
 using System.Threading.Tasks;
 using VisitorRegistry.Services;
 using VisitorRegistry.Services.Visitors;
-using VisitorRegistry.Web.Features.Home;
 
 namespace VisitorRegistry.Web.Features.Home
 {
     public partial class HomeController : Controller
     {
+
         private readonly VisitorService _visitorService;
         private readonly PresenceService _presenceService;
 
@@ -28,7 +28,6 @@ namespace VisitorRegistry.Web.Features.Home
         {
             return View();
         }
-
 
         // Mostra form registrazione visitatore
         [HttpGet]

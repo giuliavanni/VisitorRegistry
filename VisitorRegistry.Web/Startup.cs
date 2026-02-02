@@ -115,6 +115,8 @@ namespace VisitorRegistry.Web
                 app.UseHttpsRedirection();
             }
 
+            app.UseStaticFiles();
+
             // Localization support if you want to
             app.UseRequestLocalization(SupportedCultures.CultureNames);
 
@@ -154,7 +156,7 @@ namespace VisitorRegistry.Web
             // Imposta il WebRootFileProvider
             env.WebRootFileProvider = compositeProvider;
 
-            app.UseStaticFiles();
+            
 
             app.UseEndpoints(endpoints =>
             {
