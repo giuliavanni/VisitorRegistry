@@ -63,7 +63,7 @@ namespace VisitorRegistry.Web.Features.Presence
                 Id = visitorDto.Id,
                 Nome = visitorDto.Nome,
                 Cognome = visitorDto.Cognome,
-                DataVisita = visitorDto.DataVisita,
+                DataVisita = (DateTime)visitorDto.DataVisita,
                 QrCode = visitorDto.QrCode,
                 QrCodeImageBase64 = qrBase64,
                 CheckInTime = presence?.CheckInTime,

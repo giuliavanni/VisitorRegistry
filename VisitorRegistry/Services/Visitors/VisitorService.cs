@@ -28,10 +28,11 @@ namespace VisitorRegistry.Services.Visitors
                 Nome = dto.Nome,
                 Cognome = dto.Cognome,
                 DataVisita = dto.DataVisita ?? DateTime.Now,
-                QrCode = dto.QrCode,
+                QrCode = dto.QrCode ?? Guid.NewGuid().ToString(),
                 Ditta = dto.Ditta,
                 Referente = dto.Referente
             };
+            
 
             if (dto.CheckIn.HasValue || dto.CheckOut.HasValue)
             {
@@ -76,6 +77,7 @@ namespace VisitorRegistry.Services.Visitors
                     CheckIn = lastPresence?.CheckInTime,
                     CheckOut = lastPresence?.CheckOutTime,
                     CurrentPresenceId = lastPresence?.Id,
+                    DataVisita = v.DataVisita,
 
                     StatoVisita = lastPresence == null
                         ? "Visita programmata"
@@ -130,11 +132,30 @@ namespace VisitorRegistry.Services.Visitors
             visitor.Cognome = dto.Cognome;
             visitor.Ditta = dto.Ditta;
             visitor.Referente = dto.Referente;
-            visitor.DataVisita = dto.DataVisita;
+            visitor.DataVisita = dto.DataVisita.Value;
 
             await _db.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> UpdatePlanned(VisitorUpdateDTO dto)
+        {
+            var visitor = await _db.Visitors
+                .FirstOrDefaultAsync(v => v.Id == dto.Id);
+
+            if (visitor == null)
+                return false;
+
+            visitor.Nome = dto.Nome;
+            visitor.Cognome = dto.Cognome;
+            visitor.Ditta = dto.Ditta;
+            visitor.Referente = dto.Referente;
+            visitor.DataVisita = dto.DataVisita.Value;
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
 
         // =========================
         // UPDATE CON PRESENCE

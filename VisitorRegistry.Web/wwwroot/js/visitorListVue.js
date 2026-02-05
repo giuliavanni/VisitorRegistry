@@ -4,23 +4,34 @@ createApp({
     data() {
         return {
             visitors: window.initialVisitors,
+
+            // ===== GENERALE =====
+            loading: false,
+            search: '',
+            showOnlyInProgress: false,
+            showOnlyToday: false,
+            filterDate: null,
+
+            // ===== VISITE IN CORSO =====
             visitor: null,
             editVisitor: null,
-            loading: false,
             editMode: false,
-            search: '',
             modal: null,
 
-            showOnlyInProgress: false,
-            filterDate: null,
-            showOnlyToday: false,
+            // ===== VISITE PROGRAMMATE =====
+            plannedVisitor: null,
+            plannedEditMode: false,
+            plannedModal: null,
+            plannedEditVisitor: null,
 
+            // ===== NUOVO VISITATORE =====
             addingVisitor: false,
             newVisitor: {
                 Nome: '',
                 Cognome: '',
                 CheckIn: '',
-                CheckOut: ''
+                CheckOut: '',
+                DataVisita: ''
             }
         };
     },
@@ -28,65 +39,42 @@ createApp({
     computed: {
         filteredVisitors() {
             return this.visitors.filter(v => {
-
-                /* filtro nome */
-                const fullName =
-                    `${v.Nome} ${v.Cognome}`.toLowerCase();
-
+                const fullName = `${v.Nome} ${v.Cognome}`.toLowerCase();
                 const matchName =
-                    !this.search ||
-                    fullName.includes(this.search.toLowerCase());
+                    !this.search || fullName.includes(this.search.toLowerCase());
 
-                /* filtro data */
-                let matchDate = true;
-                if (this.filterDate) {
-                    if (!v.CheckIn) return false;
-
-                    const checkInDate =
-                        new Date(v.CheckIn).toISOString().split('T')[0];
-
-                    matchDate = checkInDate === this.filterDate;
-                }
-
-                /* solo visite in corso */
                 const matchInProgress =
                     !this.showOnlyInProgress ||
                     (v.CheckIn && !v.CheckOut);
 
-                /* solo visite di oggi */
                 let matchToday = true;
                 if (this.showOnlyToday) {
                     if (!v.CheckIn) return false;
-
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
-                    const checkIn = new Date(v.CheckIn);
-                    checkIn.setHours(0, 0, 0, 0);
-
-                    matchToday = checkIn.getTime() === today.getTime();
+                    matchToday =
+                        new Date(v.CheckIn).toDateString() ===
+                        new Date().toDateString();
                 }
 
-                return matchName && matchDate && matchInProgress && matchToday;
+                return matchName && matchInProgress && matchToday;
             });
         }
     },
 
     mounted() {
-        this.modalEl = document.getElementById('detailsModal');
-        this.modal = new bootstrap.Modal(this.modalEl);
+        this.modal = new bootstrap.Modal(
+            document.getElementById('detailsModal')
+        );
 
-        this.modalEl.addEventListener('shown.bs.modal', () => {
-            this.renderQr();
-        });
+        this.plannedModal = new bootstrap.Modal(
+            document.getElementById('plannedDetailsModal')
+        );
     },
 
     methods: {
+        // ==========================
+        // VISITE IN CORSO
+        // ==========================
         openDetails(presenceId) {
-            if (!presenceId) {
-                console.warn("presenceId è null — impossibile caricare i dettagli");
-                return;
-            }
             this.loading = true;
             this.visitor = null;
             this.editMode = false;
@@ -102,8 +90,9 @@ createApp({
                     this.loading = false;
                 });
         },
+
         enableEdit() {
-            this.editVisitor = JSON.parse(JSON.stringify(this.visitor));
+            this.editVisitor = { ...this.visitor };
             this.editMode = true;
         },
 
@@ -112,243 +101,152 @@ createApp({
             this.editVisitor = null;
         },
 
-        save() {
-            const payload = {
-                Id: this.editVisitor.visitorId,
-                PresenceId: this.editVisitor.presenceId,
-                Nome: this.editVisitor.nome,
-                Cognome: this.editVisitor.cognome,
-                Ditta: this.editVisitor.ditta,
-                Referente: this.editVisitor.referente
-            };
-
+        // ==========================
+        // VISITE PROGRAMMATE
+        // ==========================
+        openPlannedDetails(visitorId) {
             this.loading = true;
+            this.plannedVisitor = null;
+            this.plannedEditMode = false;
 
-            fetch('/Visitor/EditVisitor', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(payload)
-            })
-                .then(r => {
-                    if (!r.ok) throw new Error();
-                    return r.json();
-                })
-
-                .then(() => {
-                    return fetch(`/Presence/DetailsJson?presenceId=${payload.PresenceId}`);
-                })
+            fetch(`/Visitor/DetailsPlannedJson?visitorId=${visitorId}`)
                 .then(r => r.json())
                 .then(data => {
 
-                    // aggiorna modal
-                    this.visitor = {
-                        ...this.visitor,
-                        nome: data.nome,
-                        cognome: data.cognome,
-                        ditta: data.ditta,
-                        referente: data.referente
-                    };
-
-                    // aggiorna tabella
-                    const index = this.visitors.findIndex(
-                        v => v.CurrentPresenceId === data.presenceId
-                    );
-
-                    if (index !== -1) {
-                        this.visitors[index] = {
-                            ...this.visitors[index],
-                            Nome: data.nome,
-                            Cognome: data.cognome,
-                            CheckIn: data.checkInTime,
-                            CheckOut: data.checkOutTime
-                        };
+                    if (data.dataVisita) {
+                        data.dataVisita = this.toDateTimeLocal(data.dataVisita);
                     }
 
-                    this.editMode = false;
-                    this.editVisitor = null;
-                })
-                .catch(() => {
-                    alert('Errore durante il salvataggio');
+                    this.plannedVisitor = data;
+                    this.plannedModal.show();
                 })
                 .finally(() => {
                     this.loading = false;
                 });
         },
 
-        formatDateTime(value) {
-            if (!value) return '—';
-
-            const d = new Date(value);
-
-            if (isNaN(d)) return '—';
-
-            return d.toLocaleString('it-IT', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+        enablePlannedEdit() {
+            this.plannedEditMode = true;
         },
-        forceCheckout(visitor) {
-            if (!confirm('Forzare il checkout del visitatore?')) return;
 
-            fetch('/Visitor/UpdatePresence', {
+
+        cancelPlannedEdit() {
+            this.plannedEditMode = false;
+        },
+
+        savePlannedEdit() {
+            const payload = {
+                Id: this.plannedVisitor.visitorId,
+                Nome: this.plannedVisitor.nome,
+                Cognome: this.plannedVisitor.cognome,
+                DataVisita: this.plannedVisitor.dataVisita,
+                Ditta: this.plannedVisitor.ditta,
+                Referente: this.plannedVisitor.referente
+            };
+
+            fetch('/Visitor/EditPlanned', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    visitorId: visitor.Id,
-                    mode: 'out'
-                })
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(payload)
             })
                 .then(r => {
-                    if (!r.ok) throw new Error();
+                    if (!r.ok) throw new Error("Errore salvataggio");
                     return r.json();
                 })
-                .then(res => {
-                    console.log('FORCE CHECKOUT RESPONSE:', res);
-
-                    if (!res.success) {
-                        alert(res.message);
-                        return;
-                    }
-
-                    const checkoutTime = res.checkOutTime;
-
-                    const index = this.visitors.findIndex(v => v.Id === visitor.Id);
-                    if (index !== -1) {
-                        this.visitors[index] = {
-                            ...this.visitors[index],
-                            CheckOut: checkoutTime,
-                            StatoVisita: 'Uscito'
-                        };
-                    }
-                    if (
-                        this.visitor &&
-                        this.visitor.presenceId === visitor.CurrentPresenceId
-                    ) {
-                        this.visitor = {
-                            ...this.visitor,
-                            checkOutTime: checkoutTime,
-                            presenceId: null
-                        };
-                    }
-                    return;
+                .then(data => {
+                    this.plannedVisitor = data; 
+                    this.plannedEditMode = false;
                 })
-                .catch(err => {
-                    console.error(err);
-                    alert('Errore durante il force checkout');
+                .catch(() => {
+                    alert("Errore salvataggio visita programmata");
                 });
         },
-        printTable() {
-            window.print();
-        },
-        renderQr() {
-            if (!this.visitor || !this.visitor.qrCode) return;
 
-            const el = document.getElementById('qrCode');
-            if (!el) return;
-
-            el.innerHTML = '';
-
-            new QRCode(el, {
-                text: this.visitor.qrCode,
-                width: 180,
-                height: 180
-            });
-        },  
         startAddVisitor() {
             this.addingVisitor = true;
             this.newVisitor = {
                 Nome: '',
                 Cognome: '',
                 CheckIn: '',
-                CheckOut: ''
+                CheckOut: '',
+                DataVisita: ''
             };
         },
 
-        cancelNewVisitor() {
+        cancelAddVisitor() {
             this.addingVisitor = false;
-            this.newVisitor = {};
         },
 
         saveNewVisitor() {
-            if (!this.newVisitor.Nome || !this.newVisitor.Cognome) {
-                alert('Nome e Cognome obbligatori');
-                return;
-            }
-
-            // Costruisci il body solo con i campi che hanno valore
-            const params = new URLSearchParams();
-            params.append('Nome', this.newVisitor.Nome);
-            params.append('Cognome', this.newVisitor.Cognome);
-
-            // Invia CheckIn solo se è stato compilato
-            if (this.newVisitor.CheckIn) {
-                params.append('CheckIn', this.newVisitor.CheckIn);
-            }
-            // Invia CheckOut solo se è stato compilato
-            if (this.newVisitor.CheckOut) {
-                params.append('CheckOut', this.newVisitor.CheckOut);
-            }
-
             fetch('/Visitor/AddVisitor', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: params
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(this.newVisitor)
             })
                 .then(r => {
-                    if (!r.ok) throw new Error();
+                    if (!r.ok) throw new Error('Errore salvataggio');
                     return r.json();
                 })
                 .then(data => {
-                    // Usa i valori che ha restituito il backend, non quelli locali
-                    this.visitors.unshift({
+                    this.visitors.push({
                         Id: data.id,
                         Nome: data.nome,
                         Cognome: data.cognome,
-                        CheckIn: this.newVisitor.CheckIn || null,
-                        CheckOut: this.newVisitor.CheckOut || null,
+                        CheckIn: this.newVisitor.CheckIn,
+                        CheckOut: this.newVisitor.CheckOut,
+                        DataVisita: this.newVisitor.DataVisita,
                         CurrentPresenceId: data.currentPresenceId
                     });
 
                     this.addingVisitor = false;
                 })
-                .catch(() => {
-                    alert('Errore durante il salvataggio');
+                .catch(err => {
+                    console.error(err);
+                    alert('Errore durante il salvataggio del visitatore');
                 });
-        
         },
+
+
         deleteVisitor(visitorId) {
-            if (!confirm("Sei sicuro di voler eliminare questo visitatore?")) return;
+            if (!confirm('Sei sicura di voler eliminare il visitatore?')) return;
 
-            // disabilita interazioni durante la richiesta
-            this.loading = true;
-
-            fetch('/Visitor/Delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ id: visitorId })
+            fetch(`/Visitor/Delete?id=${visitorId}`, {
+                method: 'POST'
             })
                 .then(r => r.json())
                 .then(res => {
                     if (res.success) {
                         this.visitors = this.visitors.filter(v => v.Id !== visitorId);
                     } else {
-                        alert("Errore durante l'eliminazione");
+                        alert('Errore durante l’eliminazione');
                     }
-                })
-                .catch(() => {
-                    alert("Errore durante l'eliminazione");
-                })
-                .finally(() => {
-                    this.loading = false;
                 });
-        }
+        },
 
+        // ==========================
+        // UTILITY
+        // ==========================
+        formatDateTime(value) {
+            if (!value) return '—';
+            const d = new Date(value);
+            return isNaN(d)
+                ? '—'
+                : d.toLocaleString('it-IT');
+        },
+
+        toDateTimeLocal(value) {
+            if (!value) return null;
+
+            const d = new Date(value);
+            if (isNaN(d)) return null;
+
+            const pad = n => n.toString().padStart(2, '0');
+
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        },
+
+        printTable() {
+            window.print();
+        }
     }
 }).mount('#visitorApp');

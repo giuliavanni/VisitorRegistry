@@ -59,7 +59,7 @@ namespace VisitorRegistry.Web.Features.Visitor
                 Id = visitorDto.Id,
                 Nome = visitorDto.Nome,
                 Cognome = visitorDto.Cognome,
-                DataVisita = visitorDto.DataVisita,
+                DataVisita = (DateTime)visitorDto.DataVisita,
                 QrCode = visitorDto.QrCode,
                 QrCodeImageBase64 = qrBase64,
                 CheckInTime = presence?.CheckInTime,
@@ -70,6 +70,35 @@ namespace VisitorRegistry.Web.Features.Visitor
 
             return View(viewModel);
         }
+        [HttpGet]
+        public virtual async Task<IActionResult> DetailsPlannedJson(int visitorId)
+        {
+            var visitor = await _visitorService.GetById(visitorId);
+            if (visitor == null)
+                return NotFound();
+
+            Console.WriteLine(visitor.DataVisita);
+
+            return Json(new
+            {
+                visitorId = visitor.Id,
+                presenceId = (int?)null,
+
+                nome = visitor.Nome,
+                cognome = visitor.Cognome,
+                ditta = visitor.Ditta ?? "-",
+                referente = visitor.Referente ?? "-",
+
+                checkInTime = (DateTime?)null,
+                checkOutTime = (DateTime?)null,
+                dataVisita = visitor.DataVisita?.ToString("yyyy-MM-ddTHH:mm"),
+
+
+                statoVisita = "Visita programmata",
+                qrCode = visitor.QrCode
+            });
+        }
+
         [HttpPost]
         public virtual async Task<IActionResult> CancelVisitor(int id)
         {
@@ -151,7 +180,28 @@ namespace VisitorRegistry.Web.Features.Visitor
                 referente = editedVisitor.Referente
             });
         }
-        
+
+        [HttpPost]
+        public virtual async Task<IActionResult> EditPlanned([FromForm] VisitorUpdateDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var success = await _visitorService.UpdatePlanned(dto);
+            if (!success) return BadRequest();
+
+            return Json(new
+            {
+                visitorId = dto.Id,
+                nome = dto.Nome,
+                cognome = dto.Cognome,
+                ditta = dto.Ditta,
+                referente = dto.Referente,
+                dataVisita = dto.DataVisita?.ToString("yyyy-MM-ddTHH:mm")
+
+            });
+        }
+
 
         [HttpPost]
         public virtual async Task<IActionResult> Delete(int id)
