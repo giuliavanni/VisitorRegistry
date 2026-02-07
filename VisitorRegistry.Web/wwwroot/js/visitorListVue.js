@@ -397,18 +397,31 @@ createApp({
             this.confirmDelete(() => {
                 this.loading = true;
 
-            fetch(`/Visitor/Delete?id=${visitorId}`, {
-                method: 'POST'
-            })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.success) {
-                        this.visitors = this.visitors.filter(v => v.Id !== visitorId);
-                    } else {
-                        alert('Errore durante l’eliminazione');
-                    }
-                });
+                const visitorId = this.plannedVisitor.visitorId;
+
+                fetch(`/Visitor/Delete?id=${visitorId}`, {
+                    method: 'POST'
+                })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (!res.success) throw new Error();
+
+                        this.visitors = this.visitors.filter(
+                            v => v.Id !== visitorId
+                        );
+
+                        this.plannedModal.hide();
+                        this.showSuccess('✅ Visitatore eliminato con successo');
+                    })
+                    .catch(() => {
+                        this.showError('❌ Errore durante l’eliminazione');
+                    })
+                    .finally(() => {
+                        this.loading = false;
+                    });
+            });
         },
+
 
         /* =========================
            UTILS
