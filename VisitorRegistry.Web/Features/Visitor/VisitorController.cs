@@ -70,6 +70,7 @@ namespace VisitorRegistry.Web.Features.Visitor
 
             return View(viewModel);
         }
+
         [HttpGet]
         public virtual async Task<IActionResult> DetailsPlannedJson(int visitorId)
         {
@@ -125,7 +126,7 @@ namespace VisitorRegistry.Web.Features.Visitor
             if (createdVisitor == null)
                 return StatusCode(500, "Errore durante la creazione del visitatore");
 
-            
+
             var latestPresence = await _visitorService.GetLatestPresence(newId);
             int? actualPresenceId = latestPresence?.Id;
 
@@ -154,9 +155,10 @@ namespace VisitorRegistry.Web.Features.Visitor
                 ditta = createdVisitor.Ditta,
                 referente = createdVisitor.Referente,
                 statoVisita = statoVisita,
-                currentPresenceId = actualPresenceId  
+                currentPresenceId = actualPresenceId
             });
         }
+
         // =========================
         // Modifica visitatore (POST)
         // =========================
@@ -246,7 +248,5 @@ namespace VisitorRegistry.Web.Features.Visitor
                     .ToString("yyyy-MM-ddTHH:mm:ss")
             });
         }
-
-
     }
 }

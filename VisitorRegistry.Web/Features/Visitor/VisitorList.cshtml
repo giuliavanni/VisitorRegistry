@@ -6,111 +6,29 @@
 
     <h2>Elenco Visitatori</h2>
 
-    <!-- TOOLBAR -->
+    <!-- Toolbar -->
     <div class="d-flex mb-3 align-items-center gap-2">
         <input type="text" class="form-control form-control-sm"
                placeholder="Cerca per nome..." v-model="search">
 
-        <input type="date"
-               class="form-control form-control-sm"
-               v-model="filterDate"
-               title="Filtra per data visita">
-
-
-        <button class="btn btn-outline-success btn-sm"
-                v-on:click="showOnlyInProgress = !showOnlyInProgress">
-             Visite in corso
-            <span class="badge bg-success ms-1">
-                {{ visitors.filter(v => v.CheckIn && !v.CheckOut).length }}
-            </span>
-        </button>
-        
-        <button type="button"
-                class="btn btn-outline-success btn-sm"
-                :class="{ active: showOnlyToday }"
-                v-on:click="showOnlyToday = !showOnlyToday">
-            Oggi
-        </button>
-
-
         <button class="btn btn-success btn-sm"
-                v-on:click="startAddVisitor">
-            ➕ Aggiungi visitatore
-        </button>
-
-
-        <button class="btn btn-outline-secondary btn-sm"
-                v-on:click="printTable">
-            <i class="bi bi-printer me-1"></i>
-            🖨️ Stampa
+                v-on:click="openAddModal">
+                Aggiungi visitatore
         </button>
     </div>
 
-    <!-- TABELLA -->
+
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>Nome</th>
                 <th>Cognome</th>
                 <th>Stato visita</th>
-                <th>Check-in</th>
-                <th>Check-out</th>
                 <th>Azioni</th>
             </tr>
         </thead>
 
         <tbody>
-
-            <!--  RIGA NUOVO VISITATORE -->
-            <tr v-if="addingVisitor" class="table-info">
-                <td>
-                    <input type="text"
-                           class="form-control form-control-sm"
-                           v-model="newVisitor.Nome"
-                           placeholder="Nome">
-                </td>
-
-                <td>
-                    <input type="text"
-                           class="form-control form-control-sm"
-                           v-model="newVisitor.Cognome"
-                           placeholder="Cognome">
-                </td>
-
-                <td>
-                    <span class="badge bg-info">Nuovo</span>
-                </td>
-
-                <td>
-                    <input type="datetime-local"
-                           class="form-control form-control-sm"
-                           v-model="newVisitor.CheckIn">
-                </td>
-
-                <td>
-                    <input type="datetime-local"
-                           class="form-control form-control-sm"
-                           v-model="newVisitor.CheckOut">
-                </td>
-
-                <td>
-                    <input type="datetime-local"
-                           class="form-control form-control-sm"
-                           v-model="newVisitor.DataVisita">
-                </td>
-
-                <td class="d-flex gap-2">
-                    <button class="btn btn-success btn-sm"
-                            v-on:click="saveNewVisitor">
-                        💾 Salva
-                    </button>
-
-                    <button class="btn btn-danger btn-sm"
-                            v-on:click="cancelNewVisitor">
-                        ❌ Elimina
-                    </button>
-                </td>
-            </tr>
             <tr v-for="v in filteredVisitors" :key="v.Id">
                 <td>{{ v.Nome }}</td>
                 <td>{{ v.Cognome }}</td>
@@ -118,74 +36,134 @@
                 <td>
                     <!-- Visita programmata -->
                     <span v-if="!v.CheckIn"
-                          class="badge rounded-pill bg-warning text-dark
-                 fs-6 px-3 py-2 fw-semibold">
-                         Visita programmata
+                          class="badge rounded-pill bg-warning text-dark fs-6 px-3 py-2 fw-semibold">
+                        Visita programmata
                     </span>
 
-                    <!-- Visita in corso (EVIDENZA) -->
+                    <!-- Visita in corso -->
                     <span v-else-if="v.CheckIn && !v.CheckOut"
-                          class="badge rounded-pill bg-success
-                 fs-6 px-3 py-2 fw-bold shadow-sm">
-                         Visita in corso
+                          class="badge rounded-pill bg-success fs-6 px-3 py-2 fw-bold shadow-sm">
+                        Visita in corso
                     </span>
 
                     <!-- Visita terminata -->
                     <span v-else
-                          class="badge rounded-pill bg-secondary
-                 fs-6 px-3 py-2 fw-semibold">
-                         Visita terminata
-                    </span>
-                </td>
-
-
-                <td>{{ formatDateTime(v.CheckIn) }}</td>
-                <td>
-                    <!-- visita programmata -->
-                    <span v-if="!v.CheckIn">—</span>
-
-                    <!-- visita in corso -->
-                    <button v-if="v.CheckOut == null && v.CheckIn != null"
-                            class="btn btn-outline-secondary btn-sm"
-                            v-on:click="forceCheckout(v)">
-                         Forza Check-out
-                    </button>
-
-                    <!-- visita terminata -->
-                    <span v-else>
-                        {{ formatDateTime(v.CheckOut) }}
+                          class="badge rounded-pill bg-secondary fs-6 px-3 py-2 fw-semibold">
+                        Visita terminata
                     </span>
                 </td>
 
                 <td>
-               
-                    <div class="d-flex gap-1">
-                        <button class="btn btn-info btn-sm"
-                                v-if="v.CurrentPresenceId"
-                                v-on:click="openDetails(v.CurrentPresenceId)">
-                            Dettagli visita
-                        </button>
-
+                    <!-- Visita programmata mostra solo dettagli -->
+                    <div v-if="!v.CheckIn" class="d-flex gap-1">
                         <button class="btn btn-outline-info btn-sm"
-                                v-else
                                 v-on:click="openPlannedDetails(v.Id)">
-                            Dettagli visita
+                             Dettagli visita
                         </button>
-                 
-                        <button class="btn btn-danger btn-sm"
-                                :disabled="loading"
-                                v-on:click="deleteVisitor(v.Id)">
-                            🗑️ Elimina
-                        </button>
+                    </div>
 
+                    <!-- Visita in corso , mostra Forza Check-Out e dettagli -->
+                    <div v-else-if="v.CheckIn && !v.CheckOut" class="d-flex gap-1">
+                        <button class="btn btn-warning btn-sm"
+                                v-on:click="forceCheckout(v)">
+                            Forza Check-Out
+                        </button>
+                        <button class="btn btn-info btn-sm"
+                                v-on:click="openDetails(v.CurrentPresenceId, v.Id)">
+                             Dettagli
+                        </button>
+                    </div>
+
+                    <!-- Visita terminata: solo dettagli -->
+                    <div v-else class="d-flex gap-1">
+                        <button class="btn btn-info btn-sm"
+                                v-on:click="openDetails(v.CurrentPresenceId, v.Id)">
+                             Dettagli visita
+                        </button>
                     </div>
                 </td>
-
             </tr>
         </tbody>
     </table>
 
-    <!-- MODAL -->
+    <!-- Modal aggiungere nuovo visitatore -->
+    <div class="modal fade" id="addVisitorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Aggiungi nuovo visitatore</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nome *</label>
+                        <input type="text"
+                               class="form-control"
+                               v-model="newVisitor.Nome"
+                               placeholder="Inserisci nome">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Cognome *</label>
+                        <input type="text"
+                               class="form-control"
+                               v-model="newVisitor.Cognome"
+                               placeholder="Inserisci cognome">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ditta</label>
+                        <input type="text"
+                               class="form-control"
+                               v-model="newVisitor.Ditta"
+                               placeholder="Inserisci ditta (facoltativo)">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Referente</label>
+                        <input type="text"
+                               class="form-control"
+                               v-model="newVisitor.Referente"
+                               placeholder="Inserisci referente (facoltativo)">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Data visita</label>
+                        <input type="datetime-local"
+                               class="form-control"
+                               v-model="newVisitor.DataVisita">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Check-in (facoltativo)</label>
+                        <input type="datetime-local"
+                               class="form-control"
+                               v-model="newVisitor.CheckIn">
+                        <small class="text-muted">Lascia vuoto per visita programmata</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Check-out (facoltativo)</label>
+                        <input type="datetime-local"
+                               class="form-control"
+                               v-model="newVisitor.CheckOut">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                        Annulla
+                    </button>
+                    <button class="btn btn-success" v-on:click="saveNewVisitor">
+                        💾 Salva visitatore
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Dettagli visita -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -197,12 +175,12 @@
 
                 <div class="modal-body">
 
-                    <!-- LOADING -->
+
                     <p v-if="loading" class="text-center">
                         Caricamento...
                     </p>
 
-                    <!-- VIEW -->
+
                     <div v-else-if="visitor && !editMode">
                         <p><strong>Nome:</strong> {{ visitor.nome }}</p>
                         <p><strong>Cognome:</strong> {{ visitor.cognome }}</p>
@@ -215,56 +193,53 @@
                         <hr class="my-3">
 
                         <div class="text-center">
-
-                            <div class="text-center">
-                                <div id="qrCode" class="d-inline-block"></div>
-                                <p class="mt-2 text-muted small">
-                                    Codice: {{ visitor.qrCode }}
-                                </p>
-                            </div>
-
+                            <div id="qrCodeDisplay" class="d-inline-block"></div>
+                            <p class="mt-2 text-muted small">
+                                Codice: {{ visitor.qrCode }}
+                            </p>
+                            <button class="btn btn-outline-primary btn-sm mt-2"
+                                    v-on:click="downloadQRCode('visitor')">
+                                📥 Scarica QR Code
+                            </button>
                         </div>
 
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-warning" v-on:click="enableEdit">
+                                ✏️ Modifica
+                            </button>
 
-                        <button class="btn btn-warning" v-on:click="enableEdit">
-                            ✏️ Modifica
-                        </button>
+                            <button class="btn btn-danger" v-on:click="deleteVisitorFromModal">
+                                🗑️ Elimina visitatore
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- EDIT -->
+                    <!-- modifica -->
                     <div v-else-if="editVisitor && editMode">
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                Nome
-                            </label>
+                            <label class="form-label fw-semibold">Nome</label>
                             <input type="text"
                                    class="form-control"
                                    v-model="editVisitor.nome">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                Cognome
-                            </label>
+                            <label class="form-label fw-semibold">Cognome</label>
                             <input type="text"
                                    class="form-control"
                                    v-model="editVisitor.cognome">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                Ditta
-                            </label>
+                            <label class="form-label fw-semibold">Ditta</label>
                             <input type="text"
                                    class="form-control"
                                    v-model="editVisitor.ditta">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                Referente
-                            </label>
+                            <label class="form-label fw-semibold">Referente</label>
                             <input type="text"
                                    class="form-control"
                                    v-model="editVisitor.referente">
@@ -288,7 +263,8 @@
             </div>
         </div>
     </div>
-    <<!-- MODAL PLANNED -->
+
+    <!-- modal dettagli per visita programmata -->
     <div class="modal fade" id="plannedDetailsModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -311,32 +287,38 @@
                         <p><strong>Cognome:</strong> {{ plannedVisitor.cognome }}</p>
                         <p><strong>Ditta:</strong> {{ plannedVisitor.ditta || '-' }}</p>
                         <p><strong>Referente:</strong> {{ plannedVisitor.referente || '-' }}</p>
-                        <p><strong>Data:</strong> {{ formatDateTime(plannedVisitor.dataVisita) }}</p>
+                        <p><strong>Data visita:</strong> {{ formatDateTime(plannedVisitor.dataVisita) }}</p>
 
                         <hr class="my-3">
 
                         <div class="text-center">
-
-                            <div class="text-center">
-                                <div id="qrCode" class="d-inline-block"></div>
-                                <p class="mt-2 text-muted small">
-                                    Codice: {{ plannedVisitor.qrCode }}
-                                </p>
-                            </div>
-
+                            <div id="qrCodeDisplayPlanned" class="d-inline-block"></div>
+                            <p class="mt-2 text-muted small">
+                                Codice: {{ plannedVisitor.qrCode }}
+                            </p>
+                            <button class="btn btn-outline-primary btn-sm mt-2"
+                                    v-on:click="downloadQRCode('planned')">
+                                📥 Scarica QR Code
+                            </button>
                         </div>
-
                         <div class="alert alert-info mt-3">
                             Visita programmata – check-in non ancora effettuato
                         </div>
 
-                        <button class="btn btn-warning"
-                                v-on:click="enablePlannedEdit">
-                            ✏️ Modifica
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-warning"
+                                    v-on:click="enablePlannedEdit">
+                                ✏️ Modifica
+                            </button>
+
+                            <button class="btn btn-danger"
+                                    v-on:click="deleteVisitorFromPlannedModal">
+                                🗑️ Elimina visitatore
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- EDIT -->
+                    <!-- Modifica -->
                     <div v-else-if="plannedVisitor && plannedEditMode">
 
                         <div class="mb-3">
@@ -369,7 +351,7 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Data visita</label>
-                            <input type="date"
+                            <input type="datetime-local"
                                    class="form-control"
                                    v-model="plannedVisitor.dataVisita">
                         </div>
@@ -393,6 +375,50 @@
         </div>
     </div>
 
+    <!-- Modal Conferma Eliminazione Per evitare alert-->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">⚠️ Conferma Eliminazione</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">Sei sicura di voler eliminare definitivamente questo visitatore?</p>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" v-on:click="cancelDelete">
+                        Annulla
+                    </button>
+                    <button type="button" class="btn btn-danger" v-on:click="executeDelete">
+                        🗑️ Elimina
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ toastMessage }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ toastMessage }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
@@ -400,8 +426,8 @@
 <!-- DATA -->
 <script>
     window.initialVisitors = @Html.Raw(
-                Newtonsoft.Json.JsonConvert.SerializeObject(Model)
-        );
+              Newtonsoft.Json.JsonConvert.SerializeObject(Model)
+                                );
 </script>
 
 
