@@ -202,9 +202,14 @@ namespace VisitorRegistry.Services.Visitors
         // =========================
         public async Task<VisitorDetailDTO?> GetByQrCode(string qr)
         {
+            if (string.IsNullOrWhiteSpace(qr))
+                return null;
+
+            qr = qr.Trim().ToLower();
+
             return await _db.Visitors
                 .Include(v => v.Presences)
-                .Where(v => v.QrCode == qr)
+                .Where(v => v.QrCode.ToLower() == qr)
                 .Select(v => new VisitorDetailDTO
                 {
                     Id = v.Id,
@@ -225,6 +230,7 @@ namespace VisitorRegistry.Services.Visitors
                 })
                 .FirstOrDefaultAsync();
         }
+
 
         public async Task<Visitor?> GetByQrCodeAsync(string qrCode)
         {

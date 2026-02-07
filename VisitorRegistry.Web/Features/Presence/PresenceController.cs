@@ -17,25 +17,70 @@ namespace VisitorRegistry.Web.Features.Presence
             _visitorService = visitorService;
         }
 
-        
+
         [HttpGet]
         public virtual IActionResult Scan(string mode = "in")
         {
             ViewBag.Mode = mode;
-            return View();
+            return View("Scan"); 
         }
 
         [HttpPost]
-        public virtual IActionResult ProcessScan(string qrCode, string mode)
+        public virtual async Task<IActionResult> ProcessScan(string qrCode)
         {
-            ViewBag.Mode = mode;
-            ViewBag.Success = true;
-            ViewBag.Message = mode == "in"
-                ? "Check-in effettuato con successo"
-                : "Check-out effettuato con successo";
+            var visitor = await _visitorService.GetByQrCodeAsync(qrCode);
 
-            return View("Scan");
+            if (visitor == null)
+            {
+                ViewBag.Message = "Codice QR non valido";
+                ViewBag.Success = false;
+                return View("Scan");
+            }
+
+            var lastPresence = await _visitorService.GetLatestPresence(visitor.Id);
+
+            // 1?? Nessuna presenza O presenza “vuota” ? CHECK-IN
+            if (lastPresence == null || lastPresence.CheckInTime == default)
+            {
+                await _visitorService.UpdatePresence(visitor.Id, "in");
+                return RedirectToAction("SuccessCheckIn", new { id = visitor.Id });
+            }
+
+            // 2?? Presenza in corso ? CHECK-OUT
+            if (lastPresence.CheckOutTime == null)
+            {
+                await _visitorService.UpdatePresence(visitor.Id, "out");
+                return RedirectToAction("SuccessCheckOut", new { id = visitor.Id });
+            }
+
+            // 3?? Presenza conclusa ? nuovo CHECK-IN
+            await _visitorService.UpdatePresence(visitor.Id, "in");
+            return RedirectToAction("SuccessCheckIn", new { id = visitor.Id });
+
         }
+
+
+        [HttpGet]
+        public virtual async Task<IActionResult> SuccessCheckIn(int id)
+        {
+            var visitor = await _visitorService.GetById(id);
+            if (visitor == null)
+                return RedirectToAction("Scan");
+
+            return View("~/Features/Presence/SuccessCheckIn.cshtml", visitor);
+        }
+        
+
+        [HttpGet]
+        public virtual async Task<IActionResult> SuccessCheckOut(int id)
+        {
+            var visitor = await _visitorService.GetById(id);
+            if (visitor == null)
+                return RedirectToAction("Scan");
+
+            return View("~/Features/Presence/SuccessCheckOut.cshtml", visitor);
+        }
+
 
         [HttpGet]
         public virtual async Task<IActionResult> Details(int id)

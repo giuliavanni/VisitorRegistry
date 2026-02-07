@@ -29,6 +29,13 @@ namespace VisitorRegistry.Web.Features.Home
             return View();
         }
 
+        [HttpGet]
+        public virtual IActionResult InsertData()
+        {
+            return View("Register");
+        }
+
+
         // Mostra form registrazione visitatore
         [HttpGet]
         public virtual IActionResult Register()
@@ -62,27 +69,57 @@ namespace VisitorRegistry.Web.Features.Home
             // Check-in automatico
             await _presenceService.ToggleByVisitorIdAsync(visitorId);
 
-            return RedirectToAction("Success", new { qr = qrContent });
+            return RedirectToAction("SuccessRegistration", new { qr = qrContent, nome = model.Nome });
         }
 
         // Mostra QR code della registrazione
         [HttpGet]
-        public virtual IActionResult Success(string qr)
+        public virtual IActionResult SuccessRegistration(string qr, string nome)
         {
-            using var qrGenerator = new QRCodeGenerator();
-            using var qrData = qrGenerator.CreateQrCode(qr, QRCodeGenerator.ECCLevel.Q);
-            using var qrCode = new QRCode(qrData);
+
+            ViewBag.Nome = nome;
+
+            if (string.IsNullOrWhiteSpace(qr))
+            {
+                qr = "TEST-QR-123";
+            }
+
+            var qrGenerator = new QRCodeGenerator();
+            var qrData = qrGenerator.CreateQrCode(qr, QRCodeGenerator.ECCLevel.Q);
+            var qrCode = new QRCode(qrData);
+
             using var ms = new MemoryStream();
             using var bitmap = qrCode.GetGraphic(20);
-
             bitmap.Save(ms, ImageFormat.Png);
-            var qrImage = Convert.ToBase64String(ms.ToArray());
 
-            ViewBag.QrCodeImage = qrImage;
+            ViewBag.QrCodeImage = Convert.ToBase64String(ms.ToArray());
             ViewBag.QrContent = qr;
 
             return View();
         }
+
+
+
+        [HttpPost]
+        public virtual async Task<IActionResult> ScanBadge(string qrCode)
+        {
+            var visitor = await _visitorService.GetByQrCodeAsync(qrCode);
+
+            if (visitor == null)
+                return View("BadgeNotValid");
+
+            var lastPresence = await _visitorService.GetLatestPresence(visitor.Id);
+
+            if (lastPresence != null && lastPresence.CheckOutTime == null)
+            {
+                // VISITA APERTA ? USCITA
+                return View("ConfirmCheckout", visitor);
+            }
+
+            // NESSUNA VISITA APERTA ? ENTRATA
+            return View("ConfirmCheckin", visitor);
+        }
+
 
         // Cambia lingua
         [HttpPost]

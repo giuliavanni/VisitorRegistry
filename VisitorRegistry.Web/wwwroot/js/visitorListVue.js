@@ -177,6 +177,10 @@ createApp({
             this.addingVisitor = false;
         },
 
+        cancelNewVisitor() {
+            this.addingVisitor = false;
+        },
+
         saveNewVisitor() {
             fetch('/Visitor/AddVisitor', {
                 method: 'POST',
@@ -220,6 +224,38 @@ createApp({
                     } else {
                         alert('Errore durante l’eliminazione');
                     }
+                });
+        },
+
+        forceCheckout(visitor) {
+            if (!confirm(
+                `Forzare il check-out per ${visitor.Nome} ${visitor.Cognome}?`
+            )) return;
+
+            this.loading = true;
+
+            fetch('/Visitor/UpdatePresence', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    visitorId: visitor.Id,
+                    mode: 'out'
+                })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) {
+                        alert(res.message || 'Errore check-out');
+                        return;
+                    }
+
+                    // aggiorna la riga in tabella
+                    visitor.CheckOut = res.checkOutTime;
+                })
+                .finally(() => {
+                    this.loading = false;
                 });
         },
 

@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Registrazione visitatori";
+    Layout = "_LayoutHtml";
+}
+
+<div class="container-fluid d-flex flex-column justify-content-center align-items-center text-center"
+     style="min-height: 70vh;">
+
+    <!-- Titolo -->
+    <h1 class="mb-3 fw-bold">
+        Come vuoi registrarti?
+    </h1>
+
+    <p class="mb-5 text-muted fs-5">
+        Puoi usare il badge oppure inserire i tuoi dati
+    </p>
+
+    <!-- Pulsanti -->
+    <div class="d-grid gap-4 col-12 col-md-6">
+
+        <!-- Badge -->
+        <a href="@Url.Action("Scan", "Presence")"
+           class="btn btn-primary btn-lg py-4 fs-4">
+            📛 Mostra il badge
+        </a>
+
+        <!-- Inserimento dati -->
+        <a href="@Url.Action("Register", "Home")"
+           class="btn btn-outline-secondary btn-lg py-4 fs-4">
+            ✍️ Inserisci i tuoi dati
+        </a>
+
+    </div>
+
+    <!-- Microcopy rassicurante -->
+    <p class="mt-5 text-muted">
+        La registrazione richiede solo pochi secondi
+    </p>
+
+</div>

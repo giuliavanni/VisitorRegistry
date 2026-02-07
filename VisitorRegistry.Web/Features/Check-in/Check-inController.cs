@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using VisitorRegistry.Services;
+using VisitorRegistry.Services.Visitors;
 
 namespace VisitorRegistry.Web.Features.CheckIn
 {
@@ -12,6 +13,7 @@ namespace VisitorRegistry.Web.Features.CheckIn
         {
             _presenceService = presenceService;
         }
+
 
         [HttpPost]
         public virtual async Task<IActionResult> CheckIn(string qrCode)
