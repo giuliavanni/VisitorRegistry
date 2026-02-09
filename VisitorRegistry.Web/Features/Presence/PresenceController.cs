@@ -55,9 +55,10 @@ namespace VisitorRegistry.Web.Features.Presence
                 return RedirectToAction("SuccessCheckOut", new { id = visitor.Id });
             }
 
-            // Presenza conclusa ? nuovo CHECK-IN
-            await _visitorService.UpdatePresence(visitor.Id, "in");
-            return RedirectToAction("SuccessCheckIn", new { id = visitor.Id });
+            // Presenza conclusa ? ACCESSO NEGATO
+            ViewBag.Message = "Questa visita risulta già conclusa. Se devi entrare registra una nuova visita.";
+            ViewBag.Success = false;
+            return View("Scan");
 
         }
 
