@@ -230,14 +230,28 @@ namespace VisitorRegistry.Web.Features.Visitor
                 });
             }
 
-            var presence = await _visitorService.ForceCheckoutAsync(visitorId);
+            // Recupera l'ultima presenza del visitatore
+            var presence = await _visitorService.GetLatestPresence(visitorId);
+
+            // Controlla se la visita è già terminata
+            if (presence == null || presence.CheckOutTime.HasValue)
+            {
+                return Ok(new
+                {
+                    success = false,
+                    message = "La visita è già terminata"
+                });
+            }
+
+            // Forza il check-out solo se non è già chiuso
+            presence = await _visitorService.ForceCheckoutAsync(visitorId);
 
             if (presence == null)
             {
                 return Ok(new
                 {
                     success = false,
-                    message = "Presenza non trovata o già chiusa"
+                    message = "Errore durante il check-out"
                 });
             }
 

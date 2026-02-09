@@ -28,6 +28,8 @@ namespace VisitorRegistry.Web.Features.Presence
         [HttpPost]
         public virtual async Task<IActionResult> ProcessScan(string qrCode)
         {
+            qrCode = qrCode?.Trim();
+
             var visitor = await _visitorService.GetByQrCodeAsync(qrCode);
 
             if (visitor == null)
@@ -39,21 +41,21 @@ namespace VisitorRegistry.Web.Features.Presence
 
             var lastPresence = await _visitorService.GetLatestPresence(visitor.Id);
 
-            // 1?? Nessuna presenza O presenza “vuota” ? CHECK-IN
+            //  Nessuna presenza O presenza “vuota” ? CHECK-IN
             if (lastPresence == null || lastPresence.CheckInTime == default)
             {
                 await _visitorService.UpdatePresence(visitor.Id, "in");
                 return RedirectToAction("SuccessCheckIn", new { id = visitor.Id });
             }
 
-            // 2?? Presenza in corso ? CHECK-OUT
+            // Presenza in corso ? CHECK-OUT
             if (lastPresence.CheckOutTime == null)
             {
                 await _visitorService.UpdatePresence(visitor.Id, "out");
                 return RedirectToAction("SuccessCheckOut", new { id = visitor.Id });
             }
 
-            // 3?? Presenza conclusa ? nuovo CHECK-IN
+            // Presenza conclusa ? nuovo CHECK-IN
             await _visitorService.UpdatePresence(visitor.Id, "in");
             return RedirectToAction("SuccessCheckIn", new { id = visitor.Id });
 

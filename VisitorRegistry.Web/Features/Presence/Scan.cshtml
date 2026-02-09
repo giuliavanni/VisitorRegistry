@@ -29,7 +29,7 @@
                     <div id="scannerArea"
                          class="border border-2 rounded text-center p-3 mb-4">
 
-                        <div id="qr-reader" style="width:100%;"></div>
+                        <div id="qr-reader" style="width:100%; min-height:260px;"></div>
 
                         <small id="scannerHint" class="text-muted d-block mt-1">
                             Clicca qui per attivare la fotocamera 
@@ -76,37 +76,34 @@
     const form = document.getElementById('scanForm');
     const scannerArea = document.getElementById('scannerArea');
     const scannerHint = document.getElementById('scannerHint');
+    const feedback = document.getElementById("scanFeedback");
 
     let html5QrCode = null;
-    let scannerRunning = false;
+    let isScanning = false;
 
     function onScanSuccess(decodedText) {
-        // valorizza input
-        qrInput.value = decodedText;
+        if (!isScanning) return;
 
-        // feedback visivo
+        isScanning = false; // ?? BLOCCA SUBITO
+
+        qrInput.value = decodedText;
+        qrInput.readOnly = true;
+
         scannerHint.innerText = "?? Badge riconosciuto";
-        const feedback = document.getElementById("scanFeedback");
         feedback.innerText = "Badge letto correttamente";
-        feedback.classList.remove("d-none");
-        feedback.classList.remove("text-danger");
+        feedback.classList.remove("d-none", "text-danger");
         feedback.classList.add("text-success");
 
-        // blocca input per evitare doppie scansioni
-        qrInput.disabled = true;
-
-        // ferma scanner e invia
-        stopScanner().then(() => {
+        html5QrCode.stop().then(() => {
+            html5QrCode.clear();
             form.submit();
         });
     }
 
-
     function startScanner() {
-        if (scannerRunning) return;
+        if (isScanning) return;
 
         html5QrCode = new Html5Qrcode("qr-reader");
-
         scannerHint.innerText = "Fotocamera attiva, inquadra il badge";
 
         html5QrCode.start(
@@ -114,46 +111,26 @@
             { fps: 10, qrbox: 250 },
             onScanSuccess
         ).then(() => {
-            scannerRunning = true;
+            isScanning = true;
+            console.log("?? Scanner avviato");
         }).catch(err => {
             console.error("Errore scanner:", err);
         });
     }
 
     function stopScanner() {
-        if (!html5QrCode || !scannerRunning) {
-            scannerHint.innerText = "Clicca qui per attivare la fotocamera";
-            return Promise.resolve();
-        }
+        if (!html5QrCode || !isScanning) return;
 
-        return html5QrCode.stop().then(() => {
+        html5QrCode.stop().then(() => {
             html5QrCode.clear();
-            scannerRunning = false;
+            isScanning = false;
             scannerHint.innerText = "Clicca qui per attivare la fotocamera";
         });
     }
 
-    // webcam ON
     scannerArea.addEventListener('click', startScanner);
-
-    // webcam OFF quando si usa la tastiera
     qrInput.addEventListener('focus', stopScanner);
-
-@if (!string.IsNullOrEmpty(ViewBag.Message) && ViewBag.Success == false)
-{
-    <text>
-        const feedback = document.getElementById("scanFeedback");
-        feedback.innerText = "? Codice QR non valido";
-        feedback.classList.remove("d-none");
-        feedback.classList.remove("text-success");
-        feedback.classList.add("text-danger");
-
-        qrInput.disabled = false;
-        qrInput.value = "";
-        qrInput.focus();
-    </text>
-}
-
 </script>
+
 
 
